@@ -6,6 +6,21 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Partial-stream failure semantics (Python)** — `encode_checked_array` /
+  `decode_checked_array` with `StreamError` and `TruncatedStream`. A streamed
+  collection is wrapped in a small envelope whose terminal status is written
+  *last*, so a consumer can distinguish clean completion, a producer error after
+  N rows (delivered in-band with details), and truncation (dropped
+  connection/crash) — a case bare streaming responses can't tell apart. Flat
+  memory preserved. See [docs/FAILURE.md](docs/FAILURE.md).
+- **Transport guide** ([docs/TRANSPORTS.md](docs/TRANSPORTS.md)) — flatwire as a
+  pure data layer with working recipes for HTTP/WebSocket/QUIC/TCP/Unix-socket/
+  shared-memory.
+- **Protocol playground** ([web/playground.html](web/playground.html)) — encode
+  in all three formats live with a size comparison, and inspect any MessagePack
+  byte stream field-by-field, in the browser.
+
 ## [0.5.0] - 2026-08-08
 
 ### Added

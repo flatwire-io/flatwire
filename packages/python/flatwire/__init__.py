@@ -27,6 +27,12 @@ from .core import (
     encode_array,
     encode_to,
 )
+from .failure import (
+    StreamError,
+    TruncatedStream,
+    decode_checked_array,
+    encode_checked_array,
+)
 
 __all__ = [
     "encode",
@@ -35,6 +41,10 @@ __all__ = [
     "decode_from",
     "encode_array",
     "decode_array",
+    "encode_checked_array",
+    "decode_checked_array",
+    "StreamError",
+    "TruncatedStream",
 ]
 
 __version__ = "0.5.0"
