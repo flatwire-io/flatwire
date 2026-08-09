@@ -28,13 +28,14 @@ from __future__ import annotations
 
 from typing import Any, Iterable, Iterator
 
-from . import core, msgpack as _mp, xml as _xml
+from . import core, cbor as _cbor, msgpack as _mp, xml as _xml
 
 # Media types for convenience when wiring up a response.
 MEDIA_TYPES = {
     "json": "application/json",
     "xml": "application/xml",
     "msgpack": "application/msgpack",
+    "cbor": "application/cbor",
 }
 
 
@@ -43,7 +44,7 @@ def iter_encoded_array(items: Iterable[Any], format: str = "json", **kwargs) -> 
     time. Drop into any framework that consumes an iterator/generator of bytes
     (Starlette/FastAPI ``StreamingResponse``, WSGI app_iter, etc.).
 
-    ``format`` is ``"json"`` (default), ``"xml"``, or ``"msgpack"``.
+    ``format`` is ``"json"`` (default), ``"xml"``, ``"msgpack"``, or ``"cbor"``.
     """
     if format == "json":
         yield b"["
@@ -72,5 +73,10 @@ def iter_encoded_array(items: Iterable[Any], format: str = "json", **kwargs) -> 
             buf = bytearray()
             _mp._encode_value(item, buf)
             yield bytes(buf)
+    elif format == "cbor":
+        for item in items:
+            buf = bytearray()
+            _cbor._encode_value(item, buf)
+            yield bytes(buf)
     else:
-        raise ValueError(f"unknown format {format!r} (expected 'json', 'xml', or 'msgpack')")
+        raise ValueError(f"unknown format {format!r} (expected 'json', 'xml', 'msgpack', or 'cbor')")

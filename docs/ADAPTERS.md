@@ -21,7 +21,7 @@ app = FastAPI()
 def rows():
     data = big_query()                     # a generator of dicts — never materialized
     return StreamingResponse(
-        flatwire.iter_encoded_array(data, format="json"),   # or "msgpack" / "xml"
+        flatwire.iter_encoded_array(data, format="json"),   # or "msgpack" / "cbor" / "xml"
         media_type=flatwire.adapters.MEDIA_TYPES["json"],
     )
 ```
@@ -62,37 +62,84 @@ backpressure (see [BACKPRESSURE.md](BACKPRESSURE.md)).
 
 ## .NET — ASP.NET minimal API
 
-`Response.Body` is a `Stream`, so flatwire streams straight to it:
+`FlatHttp.WriteArray(items, stream, format)` streams a collection to any `Stream`
+with flat memory; `FlatHttp.MediaTypes` gives the Content-Type. It drops into a
+Minimal API via the built-in `Results.Stream`:
+
+```csharp
+using FlatWire;
+
+app.MapGet("/rows", () =>
+    Results.Stream(
+        stream => { FlatHttp.WriteArray(GetRows(), stream, "cbor"); return Task.CompletedTask; },
+        FlatHttp.MediaTypes["cbor"]));            // or "json" / "msgpack" / "xml"
+```
+
+Or write straight to `HttpContext.Response.Body` (also a `Stream`):
 
 ```csharp
 app.MapGet("/rows", (HttpContext ctx) =>
 {
-    ctx.Response.ContentType = "application/json";
-    FlatWire.Flat.EncodeArray(GetRows(), ctx.Response.Body);   // flat memory
+    ctx.Response.ContentType = FlatHttp.MediaTypes["json"];
+    FlatHttp.WriteArray(GetRows(), ctx.Response.Body, "json");   // flat memory
     return Task.CompletedTask;
 });
 ```
 
-(A dedicated `IResult` — `Results.Extensions.FlatwireArray(rows)` — is on the
-roadmap so this becomes a one-liner return.)
+`FlatHttp.WriteJsonArray<T>(items, stream)` is a typed overload for the JSON path.
 
 ## Go — net/http
 
-`http.ResponseWriter` is an `io.Writer`:
+`flatwire.WriteArray(w, items, format)` sets the `Content-Type` from the format,
+streams to the `http.ResponseWriter` with flat memory, and flushes:
 
 ```go
 func rows(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Content-Type", "application/json")
-    _, _ = flatwire.EncodeArray(getRows(), w)
+    _, _ = flatwire.WriteArray(w, getRows(), "cbor")   // or "json" / "msgpack" / "xml"
+}
+
+// Or register a streaming endpoint in one line:
+mux.Handle("/rows", flatwire.ArrayHandler(getRows(), "json"))
+```
+
+`flatwire.MediaTypes` exposes the format→Content-Type map for manual wiring
+(gin/echo/chi handlers are plain `http.ResponseWriter`, so the same call works).
+
+## Java — Servlet / Spring
+
+`FlatWireHttp.writeArray(items, out, format)` streams to any `OutputStream` with
+flat memory; `FlatWireHttp.MEDIA_TYPES` gives the Content-Type. Servlet:
+
+```java
+protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    resp.setContentType(FlatWireHttp.MEDIA_TYPES.get("cbor"));
+    FlatWireHttp.writeArray(getRows(), resp.getOutputStream(), "cbor");   // flat memory
+}
+```
+
+Spring `StreamingResponseBody`:
+
+```java
+@GetMapping(value = "/rows", produces = "application/cbor")
+StreamingResponseBody rows() {
+    return out -> FlatWireHttp.writeArray(getRows(), out, "cbor");
 }
 ```
 
 ## Status
 
-- **Python: shipped** — `iter_encoded_array` (all three formats), tested for
-  laziness and round-trip; drops into FastAPI/Starlette/WSGI.
-- **Node: shipped** — `sendArray` HTTP adapter (Content-Type + stream + end +
-  backpressure + cancellation), tested.
-- **.NET / Go / Rust / Java:** the raw stream integration is one line today (shown
-  above); dedicated framework helpers (`IResult`, gin/echo, actix, Spring) are on
-  the roadmap.
+Shipped in all six languages, each framework-agnostic (no web-framework
+dependency is pulled into the core package — the adapter is a thin helper over the
+byte stream plus a media-type map):
+
+| Language | Entry point | Sets Content-Type | Tested |
+|---|---|---|---|
+| Python | `iter_encoded_array` (+ `MEDIA_TYPES`) | via `StreamingResponse` media_type | ✅ |
+| Node | `sendArray(res, items, opts)` | ✅ on the response | ✅ |
+| .NET | `FlatHttp.WriteArray` (+ `MediaTypes`) | via `Results.Stream` / `Response.ContentType` | ✅ |
+| Go | `WriteArray(w, …)` / `ArrayHandler` (+ `MediaTypes`) | ✅ on the `ResponseWriter` | ✅ |
+| Java | `FlatWireHttp.writeArray` (+ `MEDIA_TYPES`) | via `setContentType` | ✅ |
+| Rust | `encode_array(items, &mut writer)` — any `io::Write`, incl. hyper/axum bodies | at the call site | ✅ (core) |
+
+All adapters keep peak memory bounded by the largest single element, and all four
+wire formats (json/xml/msgpack/cbor) are available through every one.

@@ -122,14 +122,14 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v0.9 — four formats, six languages, proven by conformance CI, with production hardening and a CLI.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, binary MessagePack, and binary CBOR** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity).
+**v0.10 — four formats, six languages, proven by conformance CI, with production hardening and a CLI.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, binary MessagePack, and binary CBOR** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity).
 
 ### Shipped
 - **Multi-format core** — one `encode_array` / `decode_array` API over **JSON, XML, binary MessagePack, and binary CBOR** behind a `format` selector, in all six languages. Both binary formats are **byte-identical across all six runtimes** (canonical integers + sorted keys), proven by conformance CI. ([design](docs/FORMATS.md))
 - **Partial-stream failure semantics in all six languages** — checked streams (`encode_checked_array` / `decode_checked_array`) whose terminal status is written *last*, so a consumer tells clean completion, an in-band producer error after N rows, and truncation apart. The envelope is plain JSON, so a checked stream written in any language decodes in every other. ([docs](docs/FAILURE.md))
 - **Benchmarks for all six languages**, wired into CI as regression guards, versus each ecosystem's best-configured standard libraries. ([summary](docs/BENCHMARKS.md))
 - **Benchmark dashboard** (React) rendering the measured memory/time results → [flatwire-io.github.io/flatwire](https://flatwire-io.github.io/flatwire/), plus a browser [protocol playground](https://flatwire-io.github.io/flatwire/playground.html) that encodes/decodes all formats live.
-- **Backpressure & cancellation (Node)**, **framework adapters** (FastAPI / Express / Fastify), and a **latency + concurrency benchmark** (TTFB, memory under load). ([backpressure](docs/BACKPRESSURE.md) · [adapters](docs/ADAPTERS.md) · [transports](docs/TRANSPORTS.md))
+- **Backpressure & cancellation (Node)**, **framework adapters for all six languages** (FastAPI/Starlette, Express/Fastify, ASP.NET, net/http, Servlet/Spring), and a **latency + concurrency benchmark** (TTFB, memory under load). ([backpressure](docs/BACKPRESSURE.md) · [adapters](docs/ADAPTERS.md) · [transports](docs/TRANSPORTS.md))
 - **`flatwire` command-line tool** — `cat` / `convert` / `stats` over all four wire formats, streaming any-size files in constant memory (ships with `pip install flatwire`). ([docs](docs/CLI.md))
 
 ## Design principles

@@ -6,6 +6,31 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-08-09
+
+### Added
+- **Framework adapters in all six languages** — a flat-memory streaming HTTP
+  response is now one line in every ecosystem, each framework-agnostic (no
+  web-framework dependency is pulled into the core package; the adapter is a thin
+  helper over the byte stream plus a format→Content-Type map), and all four wire
+  formats (json/xml/msgpack/cbor) work through every one:
+  - **.NET** — `FlatHttp.WriteArray(items, stream, format)` + `FlatHttp.MediaTypes`,
+    drops into ASP.NET Minimal APIs via `Results.Stream`. Plus a typed
+    `FlatHttp.WriteJsonArray<T>`.
+  - **Go** — `flatwire.WriteArray(w, items, format)` sets the Content-Type on the
+    `http.ResponseWriter`, streams, and flushes; `flatwire.ArrayHandler(items,
+    format)` is a one-line `http.Handler`; `flatwire.MediaTypes` exposes the map.
+  - **Java** — `FlatWireHttp.writeArray(items, out, format)` + `MEDIA_TYPES`, for
+    Servlet `getOutputStream()` or Spring `StreamingResponseBody`.
+
+  These join the existing Python (`iter_encoded_array`) and Node (`sendArray`)
+  adapters. See [docs/ADAPTERS.md](docs/ADAPTERS.md).
+
+### Fixed
+- **Python adapter** `iter_encoded_array` and `MEDIA_TYPES` now cover **CBOR**
+  (they previously stopped at msgpack), so all four formats are available through
+  every adapter in every language.
+
 ## [0.9.0] - 2026-08-09
 
 ### Added

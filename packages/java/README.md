@@ -95,6 +95,18 @@ try {
 The envelope is plain JSON, so a checked stream written in any flatwire language
 decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
 
+## HTTP adapter
+
+Stream a large collection to any `OutputStream` with flat memory — for a Servlet
+or a Spring `StreamingResponseBody`:
+
+```java
+resp.setContentType(FlatWireHttp.MEDIA_TYPES.get("cbor"));
+FlatWireHttp.writeArray(getRows(), resp.getOutputStream(), "cbor");  // json | xml | msgpack | cbor
+```
+
+See [docs/ADAPTERS.md](https://github.com/flatwire-io/flatwire/blob/main/docs/ADAPTERS.md).
+
 ## Benchmarks
 
 See the [live benchmark dashboard](https://flatwire-io.github.io/flatwire/) and the [cross-language summary](https://github.com/flatwire-io/flatwire/blob/main/docs/BENCHMARKS.md).
