@@ -16,15 +16,35 @@ repositories {
     mavenCentral()
 }
 
+// Separate 'bench' source set so the benchmark (which uses com.sun.management)
+// is compiled and runnable but never packaged into the published library jar.
+sourceSets {
+    bench {
+        java {
+            srcDir 'src/bench/java'
+        }
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
 dependencies {
     api 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    benchImplementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
 }
 
 test {
     useJUnitPlatform()
+}
+
+tasks.register('benchmark', JavaExec) {
+    group = 'verification'
+    description = 'Run the flatwire vs Jackson benchmark'
+    classpath = sourceSets.bench.runtimeClasspath
+    mainClass = 'io.flatwire.Benchmark'
 }
 
 import com.vanniktech.maven.publish.SonatypeHost
