@@ -3,6 +3,13 @@
     "note": "Real numbers measured on the flatwire dev machine and CI runners. Payload = 'records' shape, 50k elements (~12 MB) unless noted. See packages/*/bench/REPORT.md for full methodology.",
     "payloadLabel": "50k records (~12 MB)"
   },
+  "conformance": {
+    "note": "A shared corpus runs through all six language implementations in CI on every push. Round-trip holds for every case in every language; MessagePack encodes to byte-identical output across all six.",
+    "languages": ["Python", "Node", ".NET", "Rust", "Go", "Java"],
+    "roundtrip": "all cases, all six languages",
+    "msgpackByteIdentical": true,
+    "matrixUrl": "https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md"
+  },
   "encodeMemory": {
     "unit": "bytes",
     "note": "Peak/allocated memory to encode the whole collection vs streaming element-by-element. Lower is better.",

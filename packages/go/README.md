@@ -43,6 +43,19 @@ _ = flatwire.DecodeArray(r, func(raw json.RawMessage) error {
 | `EncodeArray(items, w)` | stream a large collection |
 | `DecodeArray(r, yield)` | stream a large array, element by element |
 
+## Formats
+
+Beyond JSON (default), the streaming array pair also speaks **XML** and binary **MessagePack** — same flat memory:
+
+```go
+flatwire.EncodeArrayXML(items, w, "items")
+flatwire.DecodeArrayXML(r, "item", func(v any) error { return nil })
+flatwire.EncodeArrayMsgPack(items, w)
+flatwire.DecodeArrayMsgPack(r, func(v any) error { return nil })
+```
+
+MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).

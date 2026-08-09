@@ -45,6 +45,17 @@ guard). Set `maxDepth: 0` to disable.
 | `encodeArray(items, writable)` | stream a large collection (sync or async iterable) |
 | `decodeArray(readable, opts?)` | async-iterate a large array lazily |
 
+## Formats
+
+The streaming array pair also speaks **XML** and binary **MessagePack** via the `format` option — same flat memory, one API:
+
+```javascript
+await fw.encodeArray(rows, writable, { format: 'xml' });      // or 'msgpack'
+for await (const row of fw.decodeArray(readable, { format: 'msgpack' })) { /* ... */ }
+```
+
+JSON (default) stays byte-compatible with `JSON.stringify`; MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).

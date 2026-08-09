@@ -144,6 +144,31 @@
             </div>
           </header>
 
+          {data.conformance && (
+            <div className="card" style={{ borderColor: "#238636", background: "linear-gradient(180deg,#0f2417,#161b22)" }}>
+              <h2>Proven identical across six languages</h2>
+              <p className="sub">{data.conformance.note}</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", margin: "6px 0 14px" }}>
+                {data.conformance.languages.map((l) => (
+                  <span key={l} className="badge" style={{ borderColor: "#238636", color: "#e6edf3" }}>{l}</span>
+                ))}
+              </div>
+              <div className="row">
+                <div className="lang">round-trip</div>
+                <div style={{ color: "var(--stream)" }}>✓ {data.conformance.roundtrip}</div>
+              </div>
+              <div className="row">
+                <div className="lang">MessagePack</div>
+                <div style={{ color: data.conformance.msgpackByteIdentical ? "var(--stream)" : "var(--muted)" }}>
+                  {data.conformance.msgpackByteIdentical ? "✓ byte-identical across all six languages" : "round-trips"}
+                </div>
+              </div>
+              <p className="foot">
+                <a href={data.conformance.matrixUrl}>See the full round-trip + byte-identity matrix →</a>
+              </p>
+            </div>
+          )}
+
           <ComparisonCard
             title="Encode memory — materialized vs streaming"
             sub={data.encodeMemory.note}

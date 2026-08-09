@@ -57,6 +57,19 @@ FlatWire.decodeArray(in, Row.class, row -> {
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).
 
+## Formats
+
+Beyond JSON (default), the streaming array pair also speaks **XML** and binary **MessagePack** — same flat memory:
+
+```java
+FlatXml.encodeArray(items, out);
+FlatXml.decodeArray(in, row -> { /* ... */ });
+FlatMsgPack.encodeArray(items, out);
+FlatMsgPack.decodeArray(in, row -> { /* ... */ });
+```
+
+MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+
 ## Benchmarks
 
 See the [live benchmark dashboard](https://flatwire-io.github.io/flatwire/) and the [cross-language summary](https://github.com/flatwire-io/flatwire/blob/main/docs/BENCHMARKS.md).

@@ -9,6 +9,16 @@ permissions:
   contents: read
 
 jobs:
+  docs-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: package versions + CHANGELOG in sync
+        run: python scripts/check_versions.py
+
   python:
     runs-on: ubuntu-latest
     defaults:

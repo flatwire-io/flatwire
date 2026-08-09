@@ -115,7 +115,7 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v0.4 — three formats, six languages.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, and binary MessagePack** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. Locally tested here: Python, Node, .NET, Rust. Validated in CI (their toolchains live on the runners): Go, Java.
+**v0.5 — three formats, six languages, proven by conformance CI.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, and binary MessagePack** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). Locally developed & tested: Python, Node, .NET, Rust. CI-validated (toolchain on the runners): Go, Java — see the [maturity table](conformance/RESULTS.md#maturity).
 
 ### Where flatwire is going (goals, not just non-goals)
 

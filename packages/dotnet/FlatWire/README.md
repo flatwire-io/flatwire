@@ -42,6 +42,18 @@ await foreach (var row in Flat.DecodeArray<Row>(stream))
 | `EncodeArray<T>(items, stream)` | stream a large collection |
 | `DecodeArray<T>(stream, ct?)` | `IAsyncEnumerable<T>` over a large array |
 
+## Formats
+
+Beyond JSON (default), the streaming array pair also speaks **XML** and binary **MessagePack** — same flat memory, separate helper classes:
+
+```csharp
+FlatXml.EncodeArray(items, stream);
+await foreach (var row in ...) { }              // FlatXml.DecodeArray(stream)
+FlatMsgPack.EncodeArray(items, stream);          // FlatMsgPack.DecodeArray(stream)
+```
+
+MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).

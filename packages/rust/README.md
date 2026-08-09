@@ -48,6 +48,19 @@ disables it.
 | `encode_array(items, &mut writer)` | stream a large collection |
 | `decode_array(reader)` | lazy `Iterator` over a large array |
 
+## Formats
+
+Beyond JSON (default), the streaming array pair also speaks **XML** and binary **MessagePack** — same flat memory:
+
+```rust
+flatwire::xml::encode_array(items.iter(), &mut writer, "items")?;
+for row in flatwire::xml::decode_array(reader, "item") { /* ... */ }
+flatwire::msgpack::encode_array(items.iter(), &mut writer)?;
+for row in flatwire::msgpack::decode_array(reader) { /* ... */ }
+```
+
+MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).
