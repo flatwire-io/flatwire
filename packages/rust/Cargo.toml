@@ -1,8 +1,8 @@
 [package]
 name = "flatwire"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
-description = "Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element."
+description = "Streaming JSON and XML serialization that keeps memory flat and time linear - stream large collections element-by-element."
 license = "Apache-2.0"
 repository = "https://github.com/flatwire-io/flatwire"
 homepage = "https://github.com/flatwire-io/flatwire"

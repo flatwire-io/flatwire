@@ -12,18 +12,32 @@ export function encodeTo(value: unknown, writable: Writable): Promise<void>;
 /** Read a whole value from a readable. */
 export function decodeFrom(readable: Readable): Promise<unknown>;
 
+/** Options for the streaming array helpers. */
+export interface ArrayOptions {
+  /** Wire format: "json" (default) or "xml". */
+  format?: 'json' | 'xml';
+  /** XML only: the wrapper element name (default "items"). */
+  root?: string;
+  /** XML only: the per-element tag name (default "item"). */
+  item?: string;
+  /** JSON only: max nesting depth before the decoder rejects input (default 200; 0 disables). */
+  maxDepth?: number;
+}
+
 /**
- * Stream a large collection as a JSON array, one element at a time. Peak memory
- * is bounded by the largest single element, not the length of the collection.
- * Returns the number of elements written.
+ * Stream a large collection element-by-element. Peak memory is bounded by the
+ * largest single element, not the length of the collection. `options.format`
+ * selects "json" (default) or "xml". Returns the number of elements written.
  */
 export function encodeArray(
   items: Iterable<unknown> | AsyncIterable<unknown>,
-  writable: Writable
+  writable: Writable,
+  options?: ArrayOptions
 ): Promise<number>;
 
 /**
- * Lazily parse a top-level JSON array from a readable, yielding one element at a
- * time so memory stays proportional to the largest element.
+ * Lazily parse a streamed collection from a readable, yielding one element at a
+ * time so memory stays proportional to the largest element. `options.format`
+ * selects "json" (default) or "xml".
  */
-export function decodeArray(readable: Readable): AsyncGenerator<unknown>;
+export function decodeArray(readable: Readable, options?: ArrayOptions): AsyncGenerator<unknown>;

@@ -49,6 +49,29 @@ await foreach (var s in Flat.DecodeArray<string>(ms2))
     if (s != null) trickyOut.Add(s);
 Check("decodeArray handles tricky strings", trickyOut.SequenceEqual(tricky));
 
+// --- XML format ---
+// Round-trip a typed object graph through streaming XML.
+var xmlItems = new List<object?>
+{
+    new Dictionary<string, object?> { ["id"] = 1L, ["name"] = "row-1", ["ok"] = true, ["tags"] = new List<object?> { "a", "b" }, ["score"] = 3.5, ["note"] = null },
+    new Dictionary<string, object?> { ["id"] = 2L, ["name"] = "has < & > \" chars", ["ok"] = false },
+    42L, "plain", new List<object?> { 1L, 2L, 3L }, null, true,
+};
+using var xms = new MemoryStream();
+long xn = FlatXml.EncodeArray(xmlItems, xms);
+Check("xml encodeArray count", xn == xmlItems.Count);
+xms.Position = 0;
+var xmlOut = FlatXml.DecodeArray(xms).ToList();
+Check("xml round-trips element count", xmlOut.Count == xmlItems.Count);
+Check("xml preserves scalar types", xmlOut[2] is long l && l == 42L && xmlOut[6] is bool b && b);
+Check("xml preserves nested object",
+    xmlOut[0] is Dictionary<string, object?> d0
+    && (long)d0["id"]! == 1L
+    && d0["note"] == null
+    && d0["tags"] is List<object?> tg && (string)tg[0]! == "a");
+Check("xml escapes special chars",
+    xmlOut[1] is Dictionary<string, object?> d1 && (string)d1["name"]! == "has < & > \" chars");
+
 Console.WriteLine(failures == 0 ? "\nALL PASSED" : $"\n{failures} FAILED");
 return failures == 0 ? 0 : 1;
 

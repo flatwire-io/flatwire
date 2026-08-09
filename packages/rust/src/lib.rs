@@ -9,6 +9,8 @@ use std::io::{self, Read, Write};
 use serde::Serialize;
 use serde_json::Value;
 
+pub mod xml;
+
 /// Encode a whole value to UTF-8 JSON bytes.
 pub fn encode<T: Serialize>(value: &T) -> serde_json::Result<Vec<u8>> {
     serde_json::to_vec(value)

@@ -5,15 +5,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>FlatWire</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Authors>The flatwire authors</Authors>
-    <Description>Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element.</Description>
+    <Description>Streaming JSON and XML serialization that keeps memory flat and time linear - stream large collections element-by-element.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/flatwire-io/flatwire</PackageProjectUrl>
     <RepositoryUrl>https://github.com/flatwire-io/flatwire</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>0.2.0: nesting-depth DoS guard on streaming decoders; per-package README and cross-registry links. Full changelog: https://github.com/flatwire-io/flatwire/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <PackageReleaseNotes>0.3.0: streaming XML format (Flat.EncodeArray/DecodeArray via FlatXml) alongside JSON; nesting-depth guard; per-package docs. Full changelog: https://github.com/flatwire-io/flatwire/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <PackageTags>json;serialization;streaming;memory;performance</PackageTags>
   </PropertyGroup>
 

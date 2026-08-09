@@ -38,9 +38,14 @@ async function decodeFrom(readable) {
   return decode(Buffer.concat(chunks));
 }
 
-// Stream a large collection as a JSON array, one element at a time. Accepts any
-// sync or async iterable. Peak memory is bounded by the largest single element.
-async function encodeArray(items, writable) {
+// Stream a large collection element-by-element. `opts.format` selects the wire
+// format: "json" (default) or "xml". Format-specific options (e.g. root for XML)
+// are passed through. Accepts any sync or async iterable; peak memory is bounded
+// by the largest single element.
+async function encodeArray(items, writable, opts = {}) {
+  const format = opts.format || 'json';
+  if (format === 'xml') return require('./xml.js').encodeArray(items, writable, opts);
+  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json' or 'xml')`);
   await write(writable, OPEN);
   let count = 0;
   for await (const item of items) {
@@ -52,12 +57,21 @@ async function encodeArray(items, writable) {
   return count;
 }
 
+// Lazily parse a streamed collection, yielding one element at a time.
+// `opts.format` selects "json" (default) or "xml".
+function decodeArray(readable, opts = {}) {
+  const format = opts.format || 'json';
+  if (format === 'xml') return require('./xml.js').decodeArray(readable, opts);
+  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json' or 'xml')`);
+  return jsonDecodeArray(readable, opts);
+}
+
 // Lazily parse a top-level JSON array from a readable, yielding one element at a
 // time. Mirrors the Python scanner: a persistent cursor tracks bracket/brace
 // depth and string state to find the depth-1 commas that separate elements,
 // without ever rescanning bytes across chunk boundaries. `maxDepth` bounds how
 // deeply a single element may nest before the input is rejected (0 disables it).
-async function* decodeArray(readable, { maxDepth = 200 } = {}) {
+async function* jsonDecodeArray(readable, { maxDepth = 200 } = {}) {
   let buf = '';
   let pos = 0;           // persistent scan cursor - never rescans prior bytes
   let elemStart = 0;

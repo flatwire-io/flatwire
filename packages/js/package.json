@@ -1,11 +1,11 @@
 {
   "name": "flatwire",
-  "version": "0.2.1",
-  "description": "Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element.",
+  "version": "0.3.0",
+  "description": "Streaming JSON and XML serialization that keeps memory flat and time linear - stream large collections element-by-element.",
   "main": "index.js",
   "types": "index.d.ts",
   "type": "commonjs",
-  "files": ["index.js", "index.d.ts", "README.md"],
+  "files": ["index.js", "index.d.ts", "xml.js", "README.md"],
   "scripts": {
     "test": "node --test"
   },

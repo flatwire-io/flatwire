@@ -94,3 +94,39 @@ test('decodeArray handles multibyte UTF-8 split across chunk boundaries', async 
   for await (const el of fw.decodeArray(Readable.from(tiny()))) out.push(el);
   assert.deepStrictEqual(out, items);
 });
+
+test('XML encodeArray/decodeArray round-trips with types preserved', async () => {
+  const items = [
+    { id: 1, name: 'row-1', ok: true, tags: ['a', 'b'], score: 3.5, note: null },
+    { id: 2, name: 'has < & > " chars', ok: false, nested: { x: [1, 2, { y: 'z' }] } },
+    42, 'plain', [1, 2, 3], null, true,
+  ];
+  const w = sink();
+  const n = await fw.encodeArray(items, w, { format: 'xml' });
+  assert.strictEqual(n, items.length);
+  const out = [];
+  for await (const el of fw.decodeArray(Readable.from(w.collected()), { format: 'xml' })) out.push(el);
+  assert.deepStrictEqual(out, items);
+});
+
+test('XML decodeArray works across tiny chunks (multi-chunk streaming)', async () => {
+  const items = Array.from({ length: 2000 }, (_, i) => ({ id: i, name: `row-${i}`, ok: i % 2 === 0, vals: [i, i + 1] }));
+  const w = sink();
+  await fw.encodeArray(items, w, { format: 'xml' });
+  const bytes = w.collected();
+  function* tiny() { for (let i = 0; i < bytes.length; i += 7) yield bytes.subarray(i, i + 7); }
+  const out = [];
+  for await (const el of fw.decodeArray(Readable.from(tiny()), { format: 'xml' })) out.push(el);
+  assert.deepStrictEqual(out, items);
+});
+
+test('XML custom root tag', async () => {
+  const w = sink();
+  await fw.encodeArray([{ a: 1 }, { a: 2 }], w, { format: 'xml', root: 'records' });
+  assert.ok(w.collected().toString('utf8').startsWith('<?xml version="1.0" encoding="UTF-8"?><records>'));
+});
+
+test('unknown format throws', async () => {
+  const w = sink();
+  await assert.rejects(async () => { await fw.encodeArray([1], w, { format: 'yaml' }); });
+});
