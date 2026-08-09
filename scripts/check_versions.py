@@ -1,8 +1,10 @@
 """CI guard: all six package manifests must declare the same flatwire version,
-and the CHANGELOG must have a matching entry.
+the CHANGELOG must have a matching entry, and the README "## Status" section must
+reference the current release line.
 
 The #1 documentation-staleness bug in a six-language monorepo is a version that
-was bumped in some packages but not others. This makes that machine-checkable.
+was bumped in some packages but not others, or a front-page README that still
+describes an older release. This makes both machine-checkable.
 Run: python scripts/check_versions.py
 """
 
@@ -50,7 +52,29 @@ def main() -> int:
         print("Add a changelog entry for the released version.", file=sys.stderr)
         return 1
 
-    print(f"\nOK: all packages at {version}, CHANGELOG has a matching entry.")
+    # The README "## Status" section must reference the current release line
+    # (vMAJOR.MINOR), so the front-page status can never silently fall a release
+    # behind the shipped packages.
+    major_minor = ".".join(version.split(".")[:2])
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    status = readme.split("## Status", 1)
+    if len(status) != 2:
+        print("\nERROR: README.md has no '## Status' section.", file=sys.stderr)
+        return 1
+    status_body = status[1].split("\n## ", 1)[0]
+    if f"v{major_minor}" not in status_body:
+        print(
+            f"\nERROR: README.md '## Status' does not mention v{major_minor} "
+            f"(packages are at {version}).",
+            file=sys.stderr,
+        )
+        print("Update the README Status/Shipped/Roadmap for the new release.", file=sys.stderr)
+        return 1
+
+    print(
+        f"\nOK: all packages at {version}, CHANGELOG has a matching entry, "
+        f"README Status references v{major_minor}."
+    )
     return 0
 
 
