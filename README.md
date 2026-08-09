@@ -122,20 +122,20 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v0.5 — three formats, six languages, proven by conformance CI.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, and binary MessagePack** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). Locally developed & tested: Python, Node, .NET, Rust. CI-validated (toolchain on the runners): Go, Java — see the [maturity table](conformance/RESULTS.md#maturity).
+**v0.6 — three formats, six languages, proven by conformance CI, with production hardening.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, and binary MessagePack** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). Locally developed & tested: Python, Node, .NET, Rust. CI-validated (toolchain on the runners): Go, Java — see the [maturity table](conformance/RESULTS.md#maturity).
 
-### Where flatwire is going (goals, not just non-goals)
-
-flatwire started as a thin streaming layer over each ecosystem's JSON primitives. Two things that were previously scoped *out* are now explicit **goals**, because they make the flat-memory guarantee useful in far more places:
-
-1. **Format-pluggable streaming — one API, many formats.** The same `encode_array` / `decode_array` surface will stream **JSON, XML, and binary formats (MessagePack, CBOR)** behind a `format` selector. The flat-memory property is format-independent, and *streaming, flat-memory XML for large collections is something almost no library offers today.*
-2. **A real streaming serializer core, not just a wrapper.** Where an ecosystem's built-in streaming primitive is missing or leaky (e.g. streaming XML of a large array), flatwire provides its own correct-by-default streaming implementation rather than deferring to a non-goal.
+### Shipped
+- **Multi-format core** — one `encode_array` / `decode_array` API over **JSON, XML, and binary MessagePack** behind a `format` selector, in all six languages. MessagePack output is **byte-identical across all six runtimes** (canonical integers + sorted keys), proven by conformance CI. ([design](docs/FORMATS.md))
+- **Benchmarks for all six languages**, wired into CI as regression guards, versus each ecosystem's best-configured standard libraries. ([summary](docs/BENCHMARKS.md))
+- **Benchmark dashboard** (React) rendering the measured memory/time results → [flatwire-io.github.io/flatwire](https://flatwire-io.github.io/flatwire/), plus a browser [protocol playground](https://flatwire-io.github.io/flatwire/playground.html) that encodes/decodes all three formats live.
+- **Partial-stream failure semantics** — checked streams (`encode_checked_array` / `decode_checked_array`) that tell clean completion, in-band producer error, and truncation apart (Python + Node). ([docs](docs/FAILURE.md))
+- **Backpressure & cancellation (Node)**, **framework adapters** (FastAPI / Express / Fastify), and a **latency + concurrency benchmark** (TTFB, memory under load). ([backpressure](docs/BACKPRESSURE.md) · [adapters](docs/ADAPTERS.md) · [transports](docs/TRANSPORTS.md))
 
 ### Roadmap
-- **Multi-format core:** `format="json"` (today) → `"xml"` → `"msgpack"`/`"cbor"`. Binary keeps flat memory *and* shrinks bytes — measured, not assumed. ([design](docs/FORMATS.md))
-- **Benchmarks for all six languages**, wired into CI as regression guards, with a comparison vs each ecosystem's best-configured standard libraries (orjson, msgspec, System.Text.Json source-gen, Jackson streaming, fast-json-stringify, `bytedance/sonic`).
-- **A benchmark visualization dashboard** (React) rendering the measured memory/time results.
-- Typed streaming decode (`decode_array::<T>()`), backpressure-aware helpers, and framework adapters (ASP.NET, Express/Fastify, FastAPI).
+- **Checked streams in all six languages** (Python + Node today → .NET, Rust, Go, Java).
+- **CBOR** as a fourth wire format behind the same `format` selector.
+- **Typed streaming decode** (`decode_array::<T>()`) and first-class backpressure helpers across the remaining languages.
+- **Framework adapters for the remaining stacks** (ASP.NET `IResult`, Go `http.Handler`, JVM).
 
 ## Design principles
 

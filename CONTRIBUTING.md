@@ -36,7 +36,26 @@ CI runs all six on every pull request.
 
 - Keep them focused; one concern per PR.
 - Update `CHANGELOG.md` under an `Unreleased` heading.
-- Be honest in benchmarks — numbers must be reproducible from the repo, measured
-  on real hardware, with no fabricated cross-tool comparisons.
+- Benchmarks must be reproducible from the repo, measured on real hardware, with
+  no fabricated cross-tool comparisons.
 
 By contributing you agree your contributions are licensed under Apache-2.0.
+
+## Releasing
+
+Every release must keep the docs in lockstep with the code. The
+`docs-consistency` CI job runs `python scripts/check_versions.py`, which **fails
+the build** unless all of the following are true, so do them together in the
+release PR:
+
+1. Bump the version in **all six** package manifests to the same value
+   (`packages/python/pyproject.toml` + `__init__.py`, `packages/js/package.json`,
+   `packages/rust/Cargo.toml`, `packages/dotnet/FlatWire/FlatWire.csproj`,
+   `packages/java/build.gradle`).
+2. Add a `## [X.Y.Z]` section to `CHANGELOG.md` (move items out of `Unreleased`).
+3. Update `README.md` **## Status** — the `vX.Y` line, the **Shipped** list, and
+   the **Roadmap** must describe the new release. The guard requires the Status
+   section to mention `vX.Y`; also move anything now shipped out of the roadmap.
+4. Update any per-package READMEs / `docs/*` affected by the change.
+5. Run `python scripts/check_versions.py` locally — it must print `OK`.
+6. Tag/publish, then cut the GitHub Release with the CHANGELOG notes.
