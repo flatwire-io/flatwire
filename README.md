@@ -134,6 +134,7 @@ flatwire started as a thin streaming layer over each ecosystem's JSON primitives
 
 - **Wire-format compatible by default.** JSON output stays byte-compatible with each ecosystem's standard serializer, so nothing downstream changes. Additional formats (XML, MessagePack, CBOR) are opt-in via the `format` selector — you choose when to use them.
 - **Streaming and correct by default.** flatwire builds on each ecosystem's best streaming primitive where one exists (`Utf8JsonWriter`/`DeserializeAsyncEnumerable`, Jackson streaming, `encoding/json`, `serde_json`), and provides its own streaming implementation where one doesn't — so the flat-memory guarantee holds regardless of format.
+- **Transport-agnostic — a pure data layer.** flatwire only reads and writes byte streams; it never opens a socket or assumes a framework. Move a stream over HTTP, WebSocket, QUIC, TCP, Unix sockets, or shared memory **without changing your payload code** — see [docs/TRANSPORTS.md](docs/TRANSPORTS.md).
 - **It does not rewrite your domain models, HTTP framework, or transport.**
 
 ## Docs & benchmarks
@@ -143,6 +144,7 @@ flatwire started as a thin streaming layer over each ecosystem's JSON primitives
 - **[Live benchmark dashboard](https://flatwire-io.github.io/flatwire/)** — an interactive visualization of the measured numbers (source in [`web/`](web/)).
 - **[Protocol playground](https://flatwire-io.github.io/flatwire/playground.html)** — encode JSON to flatwire's canonical MessagePack and inspect any byte stream field-by-field, in the browser.
 - **[Multi-format design](docs/FORMATS.md)** — the JSON → XML → binary roadmap.
+- **[Transports](docs/TRANSPORTS.md)** — flatwire as a pure data layer: move a stream over HTTP/WebSocket/QUIC/TCP/Unix-socket/shared-memory without changing payload code.
 - Per-language reports: [Python](packages/python/bench/REPORT.md) · [Node](packages/js/bench/REPORT.md) · [.NET](packages/dotnet/bench/REPORT.md) · [Rust](packages/rust/bench/REPORT.md) · [Go](packages/go/bench/REPORT.md) · [Java](packages/java/bench/REPORT.md)
 - A **Benchmarks** CI workflow (`.github/workflows/benchmarks.yml`) runs all six on the runners; a **memory regression guard** (`packages/python/bench/guard.py`) runs on every build and fails if streaming stops being flat.
 
