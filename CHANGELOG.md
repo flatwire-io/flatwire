@@ -6,18 +6,25 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.3.0] - 2026-08-08 (Python)
+## [0.3.0] - 2026-08-08
 
 ### Added
-- **Streaming XML format (Python).** `encode_array` / `decode_array` now accept
-  `format="xml"` alongside the default `format="json"`, using a typed, fully
-  round-trippable convention (types are preserved via a `type` attribute; objects
-  and arrays are represented unambiguously). Encoding streams one `<item>` at a
-  time; decoding uses `iterparse` and clears each element, so peak memory stays
-  flat. Measured (`bench/xml_bench.py`): at a 12 MB document, DOM parsing
-  (`ElementTree.fromstring`) peaks at ~125 MB while streaming parse holds ~4 MB
-  (~97% lower); streaming encode is flat at ~900 bytes. This is the first step of
-  the format-pluggable roadmap in [docs/FORMATS.md](docs/FORMATS.md).
+- **Streaming XML format in all six languages.** `encode_array` / `decode_array`
+  (and each language's equivalent) now support XML alongside JSON, using a typed,
+  fully round-trippable convention (types preserved via a `type` attribute;
+  objects and arrays represented unambiguously). Encoding streams one `<item>` at
+  a time; decoding streams element-by-element (Python `iterparse`, .NET
+  `XmlReader`, Go `xml.Decoder.Token`, Java StAX `XMLStreamReader`, hand-written
+  UTF-8-safe scanners in JS and Rust), so peak memory stays flat for a format
+  whose standard parsers usually build the whole DOM. Measured in Python: a 12 MB
+  document DOM-parses at ~125 MB vs ~4 MB streaming (~97% lower). See
+  [docs/FORMATS.md](docs/FORMATS.md).
+  - Python: `format="xml"` on the existing functions.
+  - JS: `encodeArray(items, w, { format: "xml" })` / `decodeArray(r, { format: "xml" })`.
+  - .NET: `FlatXml.EncodeArray` / `FlatXml.DecodeArray`.
+  - Rust: `flatwire::xml::encode_array` / `decode_array`.
+  - Go: `EncodeArrayXML` / `DecodeArrayXML`.
+  - Java: `FlatXml.encodeArray` / `FlatXml.decodeArray`.
 
 ### Changed
 - Roadmap reframed: multi-format streaming is now a goal (see 0.2.x notes).

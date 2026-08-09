@@ -33,9 +33,9 @@ per format; the streaming contract does not.
 | Format | Type | Streaming primitive leaned on | Status |
 |---|---|---|---|
 | JSON | text | STJ / Jackson / encoding/json / serde_json / stdlib | **shipped (v0.2)** |
-| XML | text | StAX / `XMLStreamReader` / `xml.sax` / `System.Xml` / `quick-xml` | design (Phase 3) |
-| MessagePack | binary | msgpack libs per ecosystem | design (Phase 3+) |
-| CBOR | binary | cbor libs per ecosystem | design (Phase 3+) |
+| XML | text | StAX / `XmlReader` / `xml.Decoder` / `iterparse` / hand-written (JS, Rust) | **shipped (v0.3, all 6 languages)** |
+| MessagePack | binary | msgpack libs per ecosystem | design (next) |
+| CBOR | binary | cbor libs per ecosystem | design (next) |
 | Protobuf/Avro | binary, schema'd | schema compilers | evaluate only — needs a schema, different contract |
 
 Protobuf/Avro are **explicitly deferred**: they require a compiled schema and
