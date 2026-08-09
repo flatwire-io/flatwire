@@ -1,7 +1,7 @@
 'use strict';
 
 // Head-to-head Node benchmark: built-in JSON vs flatwire, measuring peak memory
-// the ONLY honest way in Node - peak RSS of an isolated child process running
+// the only reliable way in Node - peak RSS of an isolated child process running
 // exactly one operation (process.resourceUsage().maxRSS, KB). In-process
 // heapUsed polling is unreliable (V8 GC timing dominates; no per-op allocation
 // counter like Python's tracemalloc).

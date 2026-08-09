@@ -56,6 +56,7 @@ release PR:
 3. Update `README.md` **## Status** — the `vX.Y` line, the **Shipped** list, and
    the **Roadmap** must describe the new release. The guard requires the Status
    section to mention `vX.Y`; also move anything now shipped out of the roadmap.
-4. Update any per-package READMEs / `docs/*` affected by the change.
+4. Update any per-package READMEs / `docs/*` affected by the change, including the
+   **Java README** Maven/Gradle install snippet version (it hardcodes `X.Y.Z`).
 5. Run `python scripts/check_versions.py` locally — it must print `OK`.
 6. Tag/publish, then cut the GitHub Release with the CHANGELOG notes.

@@ -1,6 +1,6 @@
 """Shows flatwire's streaming MessagePack keeps memory flat AND shrinks the bytes
 on the wire versus JSON. Also cross-checks size against the reference `msgpack`
-library (if installed) so the encoding is honest, not just small.
+library (if installed) so the encoding is spec-correct, not just small.
 
 Run: python bench/msgpack_bench.py
 """
@@ -74,7 +74,7 @@ def main() -> None:
               f"{human(enc_json):>14} {human(enc_mp):>13} | {human(dp_json):>14} {human(dp_mp):>13}")
 
     if ref:
-        # Honesty check: our size should be in the same ballpark as the reference
+        # Sanity check: our size should be in the same ballpark as the reference
         # library (not artificially small).
         sample = [{"id": i, "name": f"row-{i}", "ok": i % 2 == 0} for i in range(1000)]
         ours = io.BytesIO(); flatwire.encode_array(iter(sample), ours, format="msgpack")

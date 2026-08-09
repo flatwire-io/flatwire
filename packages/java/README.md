@@ -13,7 +13,7 @@ project (identical API in Python, Node, .NET, Rust, Go, and Java).
 Gradle:
 
 ```groovy
-implementation 'io.github.flatwire-io:flatwire:0.7.0'
+implementation 'io.github.flatwire-io:flatwire:0.10.0'
 ```
 
 Maven:
@@ -22,7 +22,7 @@ Maven:
 <dependency>
   <groupId>io.github.flatwire-io</groupId>
   <artifactId>flatwire</artifactId>
-  <version>0.7.0</version>
+  <version>0.10.0</version>
 </dependency>
 ```
 

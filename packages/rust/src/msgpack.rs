@@ -293,7 +293,7 @@ impl<R: Read> MsgPackIter<R> {
             // bin family -> represent as an array of byte numbers is lossy; the
             // JSON model has no bytes, so we surface bin as a string of raw bytes
             // decoded lossily is wrong. flatwire's JSON model never emits bin, so
-            // treat bin as unsupported on decode to stay honest.
+            // treat bin as unsupported on decode to stay correct.
             0xc4 | 0xc5 | 0xc6 => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "flatwire msgpack: binary (bin) type is not part of the JSON value model",

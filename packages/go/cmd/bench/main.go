@@ -1,5 +1,5 @@
 // Command bench measures PEAK live heap (runtime.MemStats.HeapAlloc) during
-// materialized vs streaming JSON operations - the honest metric for flatwire's
+// materialized vs streaming JSON operations - the metric that matters for flatwire's
 // flat-memory claim. Go's built-in `go test -benchmem` reports *cumulative*
 // bytes allocated per op, which counts every per-element allocation and so does
 // not reflect peak live memory; this program samples HeapAlloc on a background
