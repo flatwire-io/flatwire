@@ -51,7 +51,7 @@ with open("out.json", "rb") as fp:
 The envelope is plain JSON, so a checked stream written in any flatwire language
 decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
 
-## Streaming XML (v0.3)
+## Streaming XML
 
 The same API streams a typed, fully round-trippable **XML** representation — for
 which the standard DOM parsers would otherwise build the whole tree in memory:
