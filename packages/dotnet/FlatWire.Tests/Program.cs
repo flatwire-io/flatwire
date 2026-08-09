@@ -113,6 +113,50 @@ if (File.Exists(pyPath))
     Check("msgpack decodes Python stream", FlatMsgPack.DecodeArray(pms).Count() == 12);
 }
 
+// --- Checked streams (partial-stream failure semantics) ---
+// Clean completion: decode yields all rows and does not throw.
+using var cs1 = new MemoryStream();
+long cn = FlatChecked.EncodeCheckedArray(Enumerable.Range(0, 500).Select(i => new Row(i, $"r-{i}", true)), cs1);
+Check("checked encode count", cn == 500);
+cs1.Position = 0;
+var cout = FlatChecked.DecodeCheckedArray<Row>(cs1).ToList();
+Check("checked clean completion", cout.Count == 500 && cout[499]!.Id == 499);
+
+// Producer error mid-stream: trailer is complete:false, decode throws CheckedStreamException.
+IEnumerable<int> Boom()
+{
+    yield return 1; yield return 2;
+    throw new InvalidOperationException("boom at 3");
+}
+using var cs2 = new MemoryStream();
+bool encThrew = false;
+try { FlatChecked.EncodeCheckedArray(Boom(), cs2); } catch (InvalidOperationException) { encThrew = true; }
+Check("checked encode re-throws producer error", encThrew);
+cs2.Position = 0;
+var partial = new List<int>();
+bool sawStreamError = false;
+try { foreach (var v in FlatChecked.DecodeCheckedArray<int>(cs2)) partial.Add(v); }
+catch (CheckedStreamException e) { sawStreamError = e.Message.Contains("boom"); }
+Check("checked decode surfaces producer error after N items", partial.SequenceEqual(new[] { 1, 2 }) && sawStreamError);
+
+// Truncation: drop the trailer, decode must throw TruncatedStreamException.
+using var cs3 = new MemoryStream();
+FlatChecked.EncodeCheckedArray(new[] { 1, 2, 3, 4 }, cs3);
+var full = cs3.ToArray();
+const string terminal = "],\"complete\":true}";
+var cut = full[..(full.Length - terminal.Length)]; // lose the whole terminal status
+using var cs3b = new MemoryStream(cut);
+bool sawTrunc = false;
+try { foreach (var _ in FlatChecked.DecodeCheckedArray<int>(cs3b)) { } }
+catch (TruncatedStreamException) { sawTrunc = true; }
+Check("checked decode detects truncation", sawTrunc);
+
+// Cross-language interop: decode a checked stream written in the reference wire form.
+var wire = "{\"items\":[{\"id\":1,\"name\":\"a\"},{\"id\":2,\"name\":\"b\"}],\"complete\":true}";
+using var cs4 = new MemoryStream(Encoding.UTF8.GetBytes(wire));
+var interop = FlatChecked.DecodeCheckedArray<Row>(cs4).ToList();
+Check("checked decodes reference wire envelope", interop.Count == 2 && interop[1]!.Name == "b");
+
 Console.WriteLine(failures == 0 ? "\nALL PASSED" : $"\n{failures} FAILED");
 return failures == 0 ? 0 : 1;
 

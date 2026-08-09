@@ -54,6 +54,29 @@ FlatMsgPack.EncodeArray(items, stream);          // FlatMsgPack.DecodeArray(stre
 
 MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
 
+## Checked streams
+
+Partial-stream failure semantics: wrap a streamed array in an envelope whose
+terminal status is written *last*, so the consumer distinguishes clean
+completion, an in-band producer error after N rows, and truncation.
+
+```csharp
+using FlatWire;
+
+FlatChecked.EncodeCheckedArray(rows, stream);   // writes ...,"complete":true} last
+
+try
+{
+    foreach (var row in FlatChecked.DecodeCheckedArray<Row>(stream))
+        Handle(row);
+}
+catch (CheckedStreamException e) { /* producer failed after N rows */ }
+catch (TruncatedStreamException) { /* stream ended without a terminal status */ }
+```
+
+The envelope is plain JSON, so a checked stream written in any flatwire language
+decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).

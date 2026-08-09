@@ -61,6 +61,30 @@ for row in flatwire::msgpack::decode_array(reader) { /* ... */ }
 
 MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
 
+## Checked streams
+
+Partial-stream failure semantics: wrap a streamed array in an envelope whose
+terminal status is written *last*, so the consumer distinguishes clean
+completion, an in-band producer error after N rows, and truncation.
+
+```rust
+use flatwire::checked::{encode_checked_array, decode_checked_array, CheckedError};
+
+encode_checked_array(rows.iter(), &mut writer)?;  // writes ...,"complete":true} last
+
+for item in decode_checked_array(reader) {
+    match item {
+        Ok(value) => handle(value),
+        Err(CheckedError::Stream(err)) => { /* producer failed after N rows */ }
+        Err(CheckedError::Truncated(_)) => { /* stream ended early */ }
+        Err(CheckedError::Io(e)) => return Err(e.into()),
+    }
+}
+```
+
+The envelope is plain JSON, so a checked stream written in any flatwire language
+decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).

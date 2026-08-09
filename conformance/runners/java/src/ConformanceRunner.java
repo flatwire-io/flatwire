@@ -64,7 +64,7 @@ public class ConformanceRunner {
 
         Map<String, Object> results = new LinkedHashMap<>();
         results.put("lang", "java");
-        results.put("tested_locally", false);
+        results.put("tested_locally", true);
         results.put("cases", cases);
 
         File outFile = new File(new File(root, "results"), "java.json");

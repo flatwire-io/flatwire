@@ -20,4 +20,5 @@ streaming decoder. Reports are especially welcome for:
 
 ## Supported versions
 
-flatwire is pre-1.0; fixes land on the latest published version of each package.
+Security fixes land on the latest published release of each package. Older
+releases are not separately patched.

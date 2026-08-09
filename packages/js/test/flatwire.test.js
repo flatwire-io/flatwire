@@ -217,3 +217,50 @@ test('msgpack decodes across tiny chunks', async () => {
   for await (const el of fw.decodeArray(Readable.from(tiny()), { format: 'msgpack' })) out.push(el);
   assert.deepStrictEqual(out, items);
 });
+
+test('checked stream: clean completion yields all items', async () => {
+  async function* rows() { for (let i = 0; i < 500; i++) yield { id: i }; }
+  const w = sink();
+  const n = await fw.encodeCheckedArray(rows(), w);
+  assert.strictEqual(n, 500);
+  const out = [];
+  for await (const el of fw.decodeCheckedArray(Readable.from(w.collected()))) out.push(el);
+  assert.strictEqual(out.length, 500);
+  assert.deepStrictEqual(out[499], { id: 499 });
+});
+
+test('checked stream: producer error surfaces after N items', async () => {
+  async function* boom() { yield 1; yield 2; throw new Error('boom at 3'); }
+  const w = sink();
+  await assert.rejects(() => fw.encodeCheckedArray(boom(), w), (e) => e.message.includes('boom'));
+  // The trailer written on failure lets the consumer distinguish error from truncation.
+  const got = [];
+  let streamErr = null;
+  try {
+    for await (const el of fw.decodeCheckedArray(Readable.from(w.collected()))) got.push(el);
+  } catch (e) { streamErr = e; }
+  assert.deepStrictEqual(got, [1, 2]);
+  assert.ok(streamErr instanceof fw.StreamError, `expected StreamError, got ${streamErr}`);
+  assert.ok(String(streamErr.error.message || streamErr.error).includes('boom'));
+});
+
+test('checked stream: truncation is detected', async () => {
+  const w = sink();
+  await fw.encodeCheckedArray([1, 2, 3, 4], w);
+  const full = w.collected();
+  const terminal = Buffer.from('],"complete":true}', 'utf8');
+  const cut = full.subarray(0, full.length - terminal.length); // drop the whole terminal status
+  let truncated = false;
+  try {
+    for await (const _ of fw.decodeCheckedArray(Readable.from(cut))) { /* consume */ }
+  } catch (e) { truncated = e instanceof fw.TruncatedStreamError; }
+  assert.ok(truncated, 'expected a TruncatedStreamError');
+});
+
+test('checked stream: decodes reference wire envelope (cross-language interop)', async () => {
+  const wire = Buffer.from('{"items":[{"id":1,"name":"a"},{"id":2,"name":"b"}],"complete":true}', 'utf8');
+  const out = [];
+  for await (const el of fw.decodeCheckedArray(Readable.from(wire))) out.push(el);
+  assert.strictEqual(out.length, 2);
+  assert.strictEqual(out[1].name, 'b');
+});

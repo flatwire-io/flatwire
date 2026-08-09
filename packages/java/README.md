@@ -13,7 +13,7 @@ project (identical API in Python, Node, .NET, Rust, Go, and Java).
 Gradle:
 
 ```groovy
-implementation 'io.github.flatwire-io:flatwire:0.2.0'
+implementation 'io.github.flatwire-io:flatwire:0.7.0'
 ```
 
 Maven:
@@ -22,7 +22,7 @@ Maven:
 <dependency>
   <groupId>io.github.flatwire-io</groupId>
   <artifactId>flatwire</artifactId>
-  <version>0.2.0</version>
+  <version>0.7.0</version>
 </dependency>
 ```
 
@@ -69,6 +69,29 @@ FlatMsgPack.decodeArray(in, row -> { /* ... */ });
 ```
 
 MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+
+## Checked streams
+
+Partial-stream failure semantics: wrap a streamed array in an envelope whose
+terminal status is written *last*, so the consumer distinguishes clean
+completion, an in-band producer error after N rows, and truncation.
+
+```java
+import io.flatwire.FlatChecked;
+
+FlatChecked.encodeCheckedArray(rows, out);   // writes ...,"complete":true} last
+
+try {
+    FlatChecked.decodeCheckedArray(in, Row.class, row -> handle(row));
+} catch (FlatChecked.CheckedStreamException e) {
+    // producer failed after N rows (e.getError() holds the payload)
+} catch (FlatChecked.TruncatedStreamException e) {
+    // stream ended without a terminal status
+}
+```
+
+The envelope is plain JSON, so a checked stream written in any flatwire language
+decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
 
 ## Benchmarks
 

@@ -56,6 +56,28 @@ for await (const row of fw.decodeArray(readable, { format: 'msgpack' })) { /* ..
 
 JSON (default) stays byte-compatible with `JSON.stringify`; MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
 
+## Checked streams
+
+Partial-stream failure semantics: wrap a streamed array in an envelope whose
+terminal status is written *last*, so the consumer distinguishes clean
+completion, an in-band producer error after N rows, and truncation.
+
+```javascript
+const { encodeCheckedArray, decodeCheckedArray, StreamError, TruncatedStreamError } = fw;
+
+await encodeCheckedArray(rows, writable);       // writes ...,"complete":true} last
+
+try {
+  for await (const row of decodeCheckedArray(readable)) handle(row);
+} catch (e) {
+  if (e instanceof StreamError) { /* producer failed after N rows */ }
+  else if (e instanceof TruncatedStreamError) { /* stream ended early */ }
+}
+```
+
+The envelope is plain JSON, so a checked stream written in any flatwire language
+decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).
