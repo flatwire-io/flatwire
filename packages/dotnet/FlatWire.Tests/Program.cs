@@ -113,6 +113,46 @@ if (File.Exists(pyPath))
     Check("msgpack decodes Python stream", FlatMsgPack.DecodeArray(pms).Count() == 12);
 }
 
+// --- CBOR (binary) format ---
+var cborItems = new List<object?>
+{
+    new Dictionary<string, object?> { ["id"] = 1L, ["name"] = "row-1", ["ok"] = true, ["tags"] = new List<object?> { "a", "b" }, ["score"] = 3.5, ["note"] = null },
+    42L, -7L, 300L, -300L, 100000L, "unïcode ✓ €", new List<object?> { 1L, 2L, 3L }, null, true, 3.14159, -1.5,
+};
+using var cbms = new MemoryStream();
+long cbn = FlatCbor.EncodeArray(cborItems, cbms);
+Check("cbor encodeArray count", cbn == cborItems.Count);
+cbms.Position = 0;
+var cbOut = FlatCbor.DecodeArray(cbms).ToList();
+Check("cbor round-trips element count", cbOut.Count == cborItems.Count);
+Check("cbor preserves ints and floats",
+    cbOut[1] is long cb1 && cb1 == 42L && cbOut[2] is long cb2 && cb2 == -7L
+    && cbOut[10] is double cb10 && Math.Abs(cb10 - 3.14159) < 1e-9);
+Check("cbor preserves nested object + unicode",
+    cbOut[0] is Dictionary<string, object?> cbd && (long)cbd["id"]! == 1L
+    && (string)cbd["name"]! == "row-1" && cbd["note"] == null
+    && cbOut[6] is string cu && cu == "unïcode ✓ €");
+// Canonical known vectors: identical bytes to the Python/Node reference.
+static string CborHex(object? v)
+{
+    using var m = new MemoryStream();
+    FlatCbor.EncodeArray(new List<object?> { v }, m);
+    return Convert.ToHexString(m.ToArray()).ToLowerInvariant();
+}
+Check("cbor canonical int vectors",
+    CborHex(0L) == "00" && CborHex(23L) == "17" && CborHex(24L) == "1818"
+    && CborHex(255L) == "18ff" && CborHex(256L) == "190100"
+    && CborHex(-1L) == "20" && CborHex(-24L) == "37" && CborHex(-25L) == "3818");
+Check("cbor canonical map/array/float vectors",
+    CborHex(new List<object?> { 1L, 2L, 3L }) == "83010203"
+    && CborHex(new Dictionary<string, object?> { ["b"] = 2L, ["a"] = 1L }) == "a2616101616202"
+    && CborHex(1.5) == "fb3ff8000000000000");
+// cbor is more compact than JSON for a records shape.
+var cborCompact = Enumerable.Range(0, 1000).Select(i => (object?)new Dictionary<string, object?> { ["id"] = (long)i, ["name"] = $"row-{i}", ["ok"] = i % 2 == 0 }).ToList();
+using var cbcmp = new MemoryStream();
+FlatCbor.EncodeArray(cborCompact, cbcmp);
+Check("cbor smaller than json", cbcmp.Length < Encoding.UTF8.GetBytes(JsonSerializer.Serialize(cborCompact)).Length);
+
 // --- Checked streams (partial-stream failure semantics) ---
 // Clean completion: decode yields all rows and does not throw.
 using var cs1 = new MemoryStream();

@@ -76,6 +76,8 @@ func encode(elements []any, fmtName string) ([]byte, error) {
 		_, err = flatwire.EncodeArrayXML(elements, &buf, "items")
 	case "msgpack":
 		_, err = flatwire.EncodeArrayMsgPack(elements, &buf)
+	case "cbor":
+		_, err = flatwire.EncodeArrayCBOR(elements, &buf)
 	}
 	return buf.Bytes(), err
 }
@@ -100,6 +102,11 @@ func decode(data []byte, fmtName string) ([]any, error) {
 		})
 	case "msgpack":
 		err = flatwire.DecodeArrayMsgPack(bytes.NewReader(data), func(v any) error {
+			out = append(out, v)
+			return nil
+		})
+	case "cbor":
+		err = flatwire.DecodeArrayCBOR(bytes.NewReader(data), func(v any) error {
 			out = append(out, v)
 			return nil
 		})
@@ -175,7 +182,7 @@ func main() {
 		panic(err)
 	}
 
-	formats := []string{"json", "xml", "msgpack"}
+	formats := []string{"json", "xml", "msgpack", "cbor"}
 	cases := map[string]any{}
 	passed, total := 0, 0
 

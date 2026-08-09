@@ -57,7 +57,10 @@ def encode_array(items: Iterable[Any], fp: BinaryIO, format: str = "json", **kwa
     if format == "msgpack":
         from . import msgpack as _mp
         return _mp.encode_array(items, fp)
-    raise ValueError(f"unknown format {format!r} (expected 'json', 'xml', or 'msgpack')")
+    if format == "cbor":
+        from . import cbor as _cbor
+        return _cbor.encode_array(items, fp)
+    raise ValueError(f"unknown format {format!r} (expected 'json', 'xml', 'msgpack', or 'cbor')")
 
 
 def _json_encode_array(items: Iterable[Any], fp: BinaryIO) -> int:
@@ -89,8 +92,11 @@ def decode_array(
     if format == "msgpack":
         from . import msgpack as _mp
         return _mp.decode_array(fp, chunk_size=chunk_size)
+    if format == "cbor":
+        from . import cbor as _cbor
+        return _cbor.decode_array(fp, chunk_size=chunk_size)
     if format != "json":
-        raise ValueError(f"unknown format {format!r} (expected 'json', 'xml', or 'msgpack')")
+        raise ValueError(f"unknown format {format!r} (expected 'json', 'xml', 'msgpack', or 'cbor')")
     return _json_decode_array(fp, chunk_size=chunk_size, max_depth=max_depth)
 
 

@@ -6,6 +6,26 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-09
+
+### Added
+- **CBOR (RFC 8949) as a fourth wire format**, in all six languages
+  (`format="cbor"` / `FlatCbor` / `flatwire::cbor` / `EncodeArrayCBOR`). Like
+  MessagePack it streams a collection as concatenated self-describing data items,
+  keeping peak memory flat, and uses a **canonical, deterministic encoding**
+  (shortest integer heads, map keys sorted by UTF-8 bytes, IEEE-754 float64), so
+  the output is **byte-identical across all six runtimes** — proven by the
+  conformance suite (10/10 identical-tier cases, alongside MessagePack). Covers
+  the JSON data model; no tags. See [docs/FORMATS.md](docs/FORMATS.md).
+- **CBOR in the browser playground** — the live playground now encodes/decodes
+  CBOR too, with a size comparison against JSON/XML/MessagePack.
+
+### Changed
+- Conformance corpus now runs four formats through all six languages; the
+  aggregator reports CBOR byte-identity next to MessagePack.
+- README, `docs/FORMATS.md`, and every per-package README updated to document the
+  fourth format. Status bumped to v0.8.
+
 ## [0.7.0] - 2026-08-09
 
 ### Added

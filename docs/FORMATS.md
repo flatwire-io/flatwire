@@ -35,7 +35,7 @@ per format; the streaming contract does not.
 | JSON | text | STJ / Jackson / encoding/json / serde_json / stdlib | **shipped (v0.2)** |
 | XML | text | StAX / `XmlReader` / `xml.Decoder` / `iterparse` / hand-written (JS, Rust) | **shipped (v0.3, all 6 languages)** |
 | MessagePack | binary | msgpack libs per ecosystem | **shipped (v0.4, all 6 languages)** |
-| CBOR | binary | cbor libs per ecosystem | design (next) |
+| CBOR | binary | hand-written canonical codec (all 6) | **shipped (v0.8, all 6 languages)** |
 | Protobuf/Avro | binary, schema'd | schema compilers | evaluate only — needs a schema, different contract |
 
 Protobuf/Avro are **explicitly deferred**: they require a compiled schema and
@@ -77,9 +77,11 @@ behaviour (whole values in; parsed values out).
    (`XmlReader`/`XmlWriter`), Rust (`quick-xml`), Go (`encoding/xml` streaming
    `Decoder.Token`), Java (StAX `XMLStreamReader`). Each gets the same tests
    (round-trip, tricky content, multibyte, multi-chunk) and a benchmark.
-3. **Binary (MessagePack)** — add behind the same selector once XML lands; binary
-   framing makes element streaming straightforward and adds a bytes-on-the-wire
-   win to measure.
+3. **Binary (MessagePack, then CBOR)** — added behind the same selector once XML
+   landed; binary framing makes element streaming straightforward and adds a
+   bytes-on-the-wire win to measure. Both use a hand-written **canonical** codec
+   (deterministic integer widths, sorted map keys, IEEE-754 floats), so encoding
+   is byte-identical across all six languages — proven by the conformance suite.
 
 Every format ships only with: round-trip fidelity tests, a multi-chunk/streaming
 test, and a measured benchmark showing the flat-memory property holds. No format
@@ -88,6 +90,6 @@ is claimed without numbers.
 ## Non-goals (still)
 
 - Changing a format's on-the-wire bytes in an incompatible way — JSON stays JSON,
-  XML stays valid XML, MessagePack stays spec MessagePack.
+  XML stays valid XML, MessagePack stays spec MessagePack, CBOR stays spec CBOR.
 - Schema-first formats (Protobuf/Avro) as part of the "any object" convenience API
   — those are a separate, later, schema-aware path if pursued at all.

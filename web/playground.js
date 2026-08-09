@@ -66,6 +66,90 @@ const flatwirePlayground = (() => {
     return new Uint8Array(out);
   }
 
+  // ---- CBOR encode/decode (canonical, matches packages/*/cbor) -------------
+  function cborHead(out, major, n) {
+    const mt = major << 5;
+    if (n < 24) { out.push(mt | n); }
+    else if (n <= 0xff) { out.push(mt | 24, n); }
+    else if (n <= 0xffff) { out.push(mt | 25, (n >> 8) & 0xff, n & 0xff); }
+    else if (n <= 0xffffffff) { out.push(mt | 26, (n >>> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff); }
+    else { const dv = new DataView(new ArrayBuffer(8)); dv.setBigUint64(0, BigInt(n), false); out.push(mt | 27); for (let i = 0; i < 8; i++) out.push(dv.getUint8(i)); }
+  }
+  function cborEncodeValue(v, out) {
+    if (v === null) { out.push(0xf6); return; }
+    if (v === true) { out.push(0xf5); return; }
+    if (v === false) { out.push(0xf4); return; }
+    if (typeof v === 'number') {
+      if (Number.isSafeInteger(v)) {
+        if (v >= 0) cborHead(out, 0, v); else cborHead(out, 1, -1 - v);
+        return;
+      }
+      const b = new DataView(new ArrayBuffer(8)); b.setFloat64(0, v, false);
+      out.push(0xfb); for (let i = 0; i < 8; i++) out.push(b.getUint8(i)); return;
+    }
+    if (typeof v === 'string') {
+      const body = new TextEncoder().encode(v);
+      cborHead(out, 3, body.length); for (const b of body) out.push(b); return;
+    }
+    if (Array.isArray(v)) {
+      cborHead(out, 4, v.length);
+      for (const e of v) cborEncodeValue(e, out); return;
+    }
+    if (typeof v === 'object') {
+      // Deterministic: sort keys by UTF-8 bytes.
+      const enc = new TextEncoder();
+      const keys = Object.keys(v).sort((a, b) => {
+        const ba = enc.encode(a), bb = enc.encode(b);
+        const n = Math.min(ba.length, bb.length);
+        for (let i = 0; i < n; i++) { const d = ba[i] - bb[i]; if (d) return d; }
+        return ba.length - bb.length;
+      });
+      cborHead(out, 5, keys.length);
+      for (const k of keys) { const kb = enc.encode(k); cborHead(out, 3, kb.length); for (const b of kb) out.push(b); cborEncodeValue(v[k], out); }
+      return;
+    }
+    throw new Error('unsupported type ' + typeof v);
+  }
+  function encodeArrayCbor(items) {
+    const out = [];
+    for (const it of items) cborEncodeValue(it, out);
+    return new Uint8Array(out);
+  }
+  function decodeArrayCbor(bytes) {
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    let pos = 0;
+    function arg(ai) {
+      if (ai < 24) return ai;
+      if (ai === 24) return dv.getUint8(pos++);
+      if (ai === 25) { const n = dv.getUint16(pos, false); pos += 2; return n; }
+      if (ai === 26) { const n = dv.getUint32(pos, false); pos += 4; return n; }
+      if (ai === 27) { const n = Number(dv.getBigUint64(pos, false)); pos += 8; return n; }
+      throw new Error('bad cbor arg ' + ai);
+    }
+    function readValue() {
+      const ib = dv.getUint8(pos++);
+      const major = ib >> 5, ai = ib & 0x1f;
+      switch (major) {
+        case 0: return arg(ai);
+        case 1: return -1 - arg(ai);
+        case 3: { const n = arg(ai); const s = new TextDecoder().decode(bytes.subarray(pos, pos + n)); pos += n; return s; }
+        case 4: { const n = arg(ai); const a = []; for (let i = 0; i < n; i++) a.push(readValue()); return a; }
+        case 5: { const n = arg(ai); const o = {}; for (let i = 0; i < n; i++) { const k = readValue(); o[k] = readValue(); } return o; }
+        case 7:
+          if (ai === 20) return false;
+          if (ai === 21) return true;
+          if (ai === 22 || ai === 23) return null;
+          if (ai === 26) { const f = dv.getFloat32(pos, false); pos += 4; return f; }
+          if (ai === 27) { const f = dv.getFloat64(pos, false); pos += 8; return f; }
+          throw new Error('unsupported cbor simple ' + ai);
+        default: throw new Error('unsupported cbor major ' + major);
+      }
+    }
+    const out = [];
+    while (pos < bytes.length) out.push(readValue());
+    return out;
+  }
+
   // ---- JSON (matches flatwire encode_array: compact single array) ----------
   function encodeArrayJson(items) {
     const parts = items.map((it) => JSON.stringify(it));
@@ -144,12 +228,14 @@ const flatwirePlayground = (() => {
     const j = encodeArrayJson(items);
     const x = encodeArrayXml(items);
     const m = encodeArrayMsgpack(items);
+    const c = encodeArrayCbor(items);
     const want = canonical(items);
     const rt = (dec) => { try { return canonical(dec) === want; } catch { return false; } };
     return {
       json: { bytes: j, size: j.length, roundtrip: rt(decodeArrayJson(j)) },
       xml: { bytes: x, size: x.length, roundtrip: rt(decodeArrayXml(x)) },
       msgpack: { bytes: m, size: m.length, roundtrip: rt(inspectMsgpack(m).values) },
+      cbor: { bytes: c, size: c.length, roundtrip: rt(decodeArrayCbor(c)) },
     };
   }
 
@@ -241,6 +327,7 @@ const flatwirePlayground = (() => {
     encodeArrayJson, decodeArrayJson,
     encodeArrayXml, decodeArrayXml,
     encodeArrayMsgpack, inspectMsgpack,
+    encodeArrayCbor, decodeArrayCbor,
     computeAll, hexToBytes, base64ToBytes, bytesToHex,
   };
 })();

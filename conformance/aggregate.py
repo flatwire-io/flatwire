@@ -16,7 +16,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 RESULTS = ROOT / "results"
-FORMATS = ["json", "xml", "msgpack"]
+FORMATS = ["json", "xml", "msgpack", "cbor"]
+# Binary formats with a canonical, deterministic encoding: byte-identical across
+# every language. Text formats (json/xml) guarantee round-trip only.
+BINARY_CANONICAL = {"msgpack", "cbor"}
 LANG_ORDER = ["python", "node", "dotnet", "rust", "go", "java"]
 LANG_LABEL = {"python": "Python", "node": "Node", "dotnet": ".NET", "rust": "Rust", "go": "Go", "java": "Java"}
 
@@ -83,18 +86,18 @@ def main() -> None:
 
     # --- Byte-identity analysis (per format) ---
     lines.append("## Byte-identity across languages\n")
-    lines.append("**MessagePack (binary) is canonical**, so flatwire guarantees "
-                 "*byte-identical* encoding across every language: same integer "
-                 "widths (non-negative→smallest unsigned, negative→smallest signed), "
-                 "IEEE-754 floats, length-prefixed UTF-8 strings, and **sorted map "
-                 "keys**. **JSON and XML are text**, where escaping, whitespace, "
-                 "float formatting and key order legitimately differ across "
-                 "ecosystems — so we guarantee *round-trip*, not byte-identity, for "
-                 "those. The tables below report what actually holds.\n")
+    lines.append("**MessagePack and CBOR (binary) are canonical**, so flatwire "
+                 "guarantees *byte-identical* encoding across every language: "
+                 "deterministic integer widths, IEEE-754 floats, length-prefixed "
+                 "UTF-8 strings, and **sorted map keys**. **JSON and XML are text**, "
+                 "where escaping, whitespace, float formatting and key order "
+                 "legitimately differ across ecosystems — so we guarantee "
+                 "*round-trip*, not byte-identity, for those. The tables below "
+                 "report what actually holds.\n")
     identical_cases = [n for n, t in case_order if t == "identical"]
     fmt_identity = {}
     for fmt in FORMATS:
-        lines.append(f"### {fmt}" + ("  _(byte-identity guaranteed)_" if fmt == "msgpack"
+        lines.append(f"### {fmt}" + ("  _(byte-identity guaranteed)_" if fmt in BINARY_CANONICAL
                      else "  _(round-trip only; byte differences expected)_") + "\n")
         lines.append("| case | shared bytes? | SHA-256 (first 12) | note |")
         lines.append("|---|---|---|---|")
@@ -139,6 +142,12 @@ def main() -> None:
         lines.append(f"- **MessagePack byte-identity:** {mp_ok}/{mp_total} identical-tier cases "
                      f"are byte-identical across all reporting languages {claim}"
                      + (" — **every value encodes to the same bytes in every language.**" if mp_ok == mp_total else "."))
+    cb_ok, cb_total = fmt_identity.get("cbor", (0, 0))
+    if cb_total:
+        claim = "✅" if cb_ok == cb_total else "⚠️"
+        lines.append(f"- **CBOR byte-identity:** {cb_ok}/{cb_total} identical-tier cases "
+                     f"are byte-identical across all reporting languages {claim}"
+                     + (" — **every value encodes to the same bytes in every language.**" if cb_ok == cb_total else "."))
     for fmt in ("json", "xml"):
         ok, total = fmt_identity.get(fmt, (0, 0))
         if total:
@@ -149,7 +158,9 @@ def main() -> None:
     (ROOT / "RESULTS.md").write_text("\n".join(lines), encoding="utf-8")
     print(f"wrote {ROOT / 'RESULTS.md'} from {len(langs)} language(s): {', '.join(langs)}")
     mp_ok, mp_total = fmt_identity.get("msgpack", (0, 0))
-    print(f"msgpack byte-identity: {mp_ok}/{mp_total} identical-tier cases")
+    cb_ok, cb_total = fmt_identity.get("cbor", (0, 0))
+    print(f"msgpack byte-identity: {mp_ok}/{mp_total} identical-tier cases; "
+          f"cbor byte-identity: {cb_ok}/{cb_total} identical-tier cases")
 
 
 if __name__ == "__main__":

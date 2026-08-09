@@ -18,7 +18,7 @@ if (!File.Exists(corpusPath))
 }
 
 using var doc = JsonDocument.Parse(File.ReadAllText(corpusPath));
-var formats = new[] { "json", "xml", "msgpack" };
+var formats = new[] { "json", "xml", "msgpack", "cbor" };
 
 var cases = new Dictionary<string, object>();
 foreach (var caseEl in doc.RootElement.GetProperty("cases").EnumerateArray())
@@ -41,6 +41,7 @@ foreach (var caseEl in doc.RootElement.GetProperty("cases").EnumerateArray())
                     case "json": Flat.EncodeArray(elements, enc); break;
                     case "xml": FlatXml.EncodeArray(elements, enc); break;
                     case "msgpack": FlatMsgPack.EncodeArray(elements, enc); break;
+                    case "cbor": FlatCbor.EncodeArray(elements, enc); break;
                 }
                 data = enc.ToArray();
             }
@@ -51,6 +52,7 @@ foreach (var caseEl in doc.RootElement.GetProperty("cases").EnumerateArray())
                     "json" => DecodeJson(dec),
                     "xml" => FlatXml.DecodeArray(dec).ToList(),
                     "msgpack" => FlatMsgPack.DecodeArray(dec).ToList(),
+                    "cbor" => FlatCbor.DecodeArray(dec).ToList(),
                     _ => new List<object?>(),
                 };
             }
