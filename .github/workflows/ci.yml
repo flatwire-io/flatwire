@@ -16,7 +16,7 @@ jobs:
         working-directory: packages/python
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
@@ -43,7 +43,7 @@ jobs:
         working-directory: packages/dotnet
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
       - run: dotnet run -c Release --project FlatWire.Tests
@@ -65,9 +65,10 @@ jobs:
         working-directory: packages/go
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: "1.22"
+          cache: false
       - run: go test ./...
 
   java:
@@ -81,6 +82,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - run: gradle test --no-daemon
+
+
 
