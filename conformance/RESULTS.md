@@ -114,10 +114,10 @@ Every case must decode back to what was encoded, in every language. `✓` = roun
 | int_boundaries | ⚠️ differs | — | Python,Node,Rust,Go,Java=104d1b84; .NET=8a8fefde |
 | strings_basic | ⚠️ differs | — | Python,Node,Rust,Go,Java=a5e5510f; .NET=5c507965 |
 | strings_punctuation | ⚠️ differs | — | Python,Node,Rust,Go,Java=0ed18908; .NET=9a506b9d |
-| object_small | ⚠️ differs | — | Python,Node=f6eb8e5a; .NET=5ec0f48e; Rust,Go=e7b825da; Java=fcb16c1c |
+| object_small | ⚠️ differs | — | Python,Node=f6eb8e5a; .NET=5ec0f48e; Rust=e7b825da; Go=cfb2ee16; Java=fcb16c1c |
 | arrays_nested | ⚠️ differs | — | Python,Node=19b60aa3; .NET=b7f8eca4; Rust,Go,Java=fc13279b |
 | deep_nesting | ⚠️ differs | — | Python,Node,Rust,Go,Java=446311bb; .NET=bcd83305 |
-| records_homogeneous | ⚠️ differs | — | Python,Node=2375d5b5; .NET=5ac2a334; Rust,Java=45527c43; Go=69c22808 |
+| records_homogeneous | ⚠️ differs | — | Python,Node=2375d5b5; .NET=5ac2a334; Rust,Go,Java=45527c43 |
 
 ### msgpack  _(byte-identity guaranteed)_
 
