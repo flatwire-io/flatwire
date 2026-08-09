@@ -34,7 +34,7 @@ per format; the streaming contract does not.
 |---|---|---|---|
 | JSON | text | STJ / Jackson / encoding/json / serde_json / stdlib | **shipped (v0.2)** |
 | XML | text | StAX / `XmlReader` / `xml.Decoder` / `iterparse` / hand-written (JS, Rust) | **shipped (v0.3, all 6 languages)** |
-| MessagePack | binary | msgpack libs per ecosystem | design (next) |
+| MessagePack | binary | msgpack libs per ecosystem | **shipped (v0.4, Python; ports next)** |
 | CBOR | binary | cbor libs per ecosystem | design (next) |
 | Protobuf/Avro | binary, schema'd | schema compilers | evaluate only — needs a schema, different contract |
 

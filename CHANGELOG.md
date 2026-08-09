@@ -6,6 +6,21 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-08 (Python)
+
+### Added
+- **Streaming MessagePack (binary) format — `format="msgpack"` (Python).** A
+  compact binary wire for internal service-to-service traffic, streamed as a
+  sequence of concatenated MessagePack values so encode memory stays flat (no
+  count needed up front) and decode reads one value at a time. **Wire-compatible
+  with the reference `msgpack` library** (verified both directions in the test
+  suite). Measured (`bench/MSGPACK.md`): ~11–13% smaller than JSON on a
+  string-heavy shape (more on numeric-heavy data), with encode peak ~650 bytes
+  and decode peak ~194 KB, both flat. Spec-correct for the JSON data model; no ext
+  types/timestamps. This completes the JSON → XML → binary format roadmap in
+  [docs/FORMATS.md](docs/FORMATS.md) for the Python reference; ports to the other
+  languages follow.
+
 ## [0.3.0] - 2026-08-08
 
 ### Added

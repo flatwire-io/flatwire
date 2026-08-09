@@ -150,6 +150,48 @@ def test_unknown_format_raises():
         pass
 
 
+def test_msgpack_encode_array_then_decode_array_roundtrips():
+    items = [
+        {"id": i, "name": f"row-{i}", "ok": i % 2 == 0, "tags": ["a", "b"], "score": i + 0.5, "note": None}
+        for i in range(1000)
+    ]
+    buf = io.BytesIO()
+    n = flatwire.encode_array(iter(items), buf, format="msgpack")
+    assert n == 1000
+    buf.seek(0)
+    assert list(flatwire.decode_array(buf, format="msgpack")) == items
+
+
+def test_msgpack_preserves_types_and_unicode():
+    tricky = [
+        42, -7, 300, -300, 100000, 4294967296,
+        3.14159, -1.5, True, False, None,
+        "unïcode ✓ €uro 🎯",
+        [1, [2, 3], {"k": "v"}],
+        {"nested": {"deep": [None, True, "x"]}},
+    ]
+    buf = io.BytesIO()
+    flatwire.encode_array(iter(tricky), buf, format="msgpack")
+    buf.seek(0)
+    assert list(flatwire.decode_array(buf, format="msgpack")) == tricky
+
+
+def test_msgpack_is_more_compact_than_json():
+    items = [{"id": i, "name": f"row-{i}", "ok": i % 2 == 0} for i in range(1000)]
+    jb = io.BytesIO(); flatwire.encode_array(iter(items), jb, format="json")
+    mb = io.BytesIO(); flatwire.encode_array(iter(items), mb, format="msgpack")
+    # Binary framing should be smaller than JSON text for this shape.
+    assert len(mb.getvalue()) < len(jb.getvalue())
+
+
+def test_msgpack_decodes_across_tiny_chunks():
+    items = [{"id": i, "vals": [i, i + 1, i + 2]} for i in range(2000)]
+    buf = io.BytesIO()
+    flatwire.encode_array(iter(items), buf, format="msgpack")
+    buf.seek(0)
+    assert list(flatwire.decode_array(buf, format="msgpack", chunk_size=7)) == items
+
+
 def test_streaming_array_uses_far_less_peak_memory():
     # The core promise: peak memory for streaming a large array is bounded by one
     # element, not the whole collection. Compare peak allocation of building the
