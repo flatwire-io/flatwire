@@ -17,7 +17,9 @@ function encodeValue(v, chunks) {
   } else if (v === false) {
     chunks.push(Buffer.from([0xc2]));
   } else if (typeof v === 'number') {
-    if (Number.isInteger(v)) encodeInt(v, chunks);
+    // Only a safe integer is encoded as a msgpack int; integer-valued numbers
+    // beyond 2^53 (e.g. 1e300) are not 64-bit ints and must go out as floats.
+    if (Number.isSafeInteger(v)) encodeInt(v, chunks);
     else { const b = Buffer.allocUnsafe(9); b[0] = 0xcb; b.writeDoubleBE(v, 1); chunks.push(b); }
   } else if (typeof v === 'bigint') {
     encodeBigInt(v, chunks);
@@ -29,7 +31,9 @@ function encodeValue(v, chunks) {
     encodeArrayHeader(v.length, chunks);
     for (const e of v) encodeValue(e, chunks);
   } else if (typeof v === 'object') {
-    const keys = Object.keys(v);
+    // Canonical: sort keys so the encoding is byte-identical regardless of
+    // insertion order.
+    const keys = Object.keys(v).sort();
     encodeMapHeader(keys.length, chunks);
     for (const k of keys) { encodeStr(k, chunks); encodeValue(v[k], chunks); }
   } else {
@@ -38,16 +42,23 @@ function encodeValue(v, chunks) {
 }
 
 function encodeInt(v, chunks) {
-  if (v >= 0 && v <= 0x7f) return chunks.push(Buffer.from([v]));
-  if (v < 0 && v >= -32) return chunks.push(Buffer.from([v & 0xff]));
+  // Canonical scheme (byte-identical across all flatwire languages):
+  //   -32..127     -> fixint
+  //   non-negative -> smallest UNSIGNED type
+  //   negative     -> smallest SIGNED type
+  if (v >= -32 && v <= 127) return chunks.push(Buffer.from([v & 0xff]));
   let b;
-  if (v >= -0x80 && v <= 0x7f) { b = Buffer.allocUnsafe(2); b[0] = 0xd0; b.writeInt8(v, 1); }
-  else if (v >= 0 && v <= 0xff) { b = Buffer.from([0xcc, v]); }
-  else if (v >= -0x8000 && v <= 0x7fff) { b = Buffer.allocUnsafe(3); b[0] = 0xd1; b.writeInt16BE(v, 1); }
-  else if (v >= 0 && v <= 0xffff) { b = Buffer.allocUnsafe(3); b[0] = 0xcd; b.writeUInt16BE(v, 1); }
-  else if (v >= -0x80000000 && v <= 0x7fffffff) { b = Buffer.allocUnsafe(5); b[0] = 0xd2; b.writeInt32BE(v, 1); }
-  else if (v >= 0 && v <= 0xffffffff) { b = Buffer.allocUnsafe(5); b[0] = 0xce; b.writeUInt32BE(v, 1); }
-  else { return encodeBigInt(BigInt(v), chunks); }
+  if (v >= 0) {
+    if (v <= 0xff) { b = Buffer.from([0xcc, v]); }
+    else if (v <= 0xffff) { b = Buffer.allocUnsafe(3); b[0] = 0xcd; b.writeUInt16BE(v, 1); }
+    else if (v <= 0xffffffff) { b = Buffer.allocUnsafe(5); b[0] = 0xce; b.writeUInt32BE(v, 1); }
+    else { return encodeBigInt(BigInt(v), chunks); }
+  } else {
+    if (v >= -0x80) { b = Buffer.allocUnsafe(2); b[0] = 0xd0; b.writeInt8(v, 1); }
+    else if (v >= -0x8000) { b = Buffer.allocUnsafe(3); b[0] = 0xd1; b.writeInt16BE(v, 1); }
+    else if (v >= -0x80000000) { b = Buffer.allocUnsafe(5); b[0] = 0xd2; b.writeInt32BE(v, 1); }
+    else { return encodeBigInt(BigInt(v), chunks); }
+  }
   chunks.push(b);
 }
 
@@ -128,8 +139,11 @@ class Reader {
     }
   }
   async atEnd() {
-    if (this.pos < this.buf.length) return false;
-    return !(await this._pull());
+    while (this.pos >= this.buf.length) {
+      if (!(await this._pull())) return true; // stream exhausted
+      // a pulled chunk may be empty (e.g. Readable.from(emptyBuffer)); loop.
+    }
+    return false;
   }
   async take(n) {
     await this.ensure(n);

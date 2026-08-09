@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"sort"
 )
 
 // --- encoding --------------------------------------------------------------
@@ -72,11 +73,17 @@ func writeMsgValue(w io.Writer, v any) error {
 		if err := writeMsgMapHeader(w, len(x)); err != nil {
 			return err
 		}
-		for k, val := range x {
+		// Canonical: sort keys for byte-identical output regardless of map order.
+		keys := make([]string, 0, len(x))
+		for k := range x {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
 			if err := writeMsgStr(w, k); err != nil {
 				return err
 			}
-			if err := writeMsgValue(w, val); err != nil {
+			if err := writeMsgValue(w, x[k]); err != nil {
 				return err
 			}
 		}
@@ -95,23 +102,26 @@ func writeMsgF64(w io.Writer, f float64) error {
 }
 
 func writeMsgInt(w io.Writer, v int64) error {
+	// Canonical: -32..127 fixint; non-negative -> smallest unsigned; negative ->
+	// smallest signed. Non-negative values are routed to writeMsgUint by the
+	// caller, so this handles the general case for any int64.
+	if v >= 0 {
+		return writeMsgUint(w, uint64(v))
+	}
 	switch {
-	case v >= 0 && v <= 0x7f:
+	case v >= -32:
 		_, err := w.Write([]byte{byte(v)})
 		return err
-	case v < 0 && v >= -32:
-		_, err := w.Write([]byte{byte(v)})
+	case v >= -0x80:
+		_, err := w.Write([]byte{0xd0, byte(int8(v))})
 		return err
-	case v >= -0x80 && v <= 0x7f:
-		_, err := w.Write([]byte{0xd0, byte(v)})
-		return err
-	case v >= -0x8000 && v <= 0x7fff:
+	case v >= -0x8000:
 		var b [3]byte
 		b[0] = 0xd1
 		binary.BigEndian.PutUint16(b[1:], uint16(int16(v)))
 		_, err := w.Write(b[:])
 		return err
-	case v >= -0x80000000 && v <= 0x7fffffff:
+	case v >= -0x80000000:
 		var b [5]byte
 		b[0] = 0xd2
 		binary.BigEndian.PutUint32(b[1:], uint32(int32(v)))

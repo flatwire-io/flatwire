@@ -1,0 +1,115 @@
+name: Conformance
+
+# Runs the shared corpus through all six language implementations, then
+# aggregates a cross-language byte-identity + round-trip matrix. This is the
+# proof behind flatwire's "one identical contract across six languages" claim.
+
+on:
+  push:
+    branches: [main]
+    paths: ["packages/**", "conformance/**", ".github/workflows/conformance.yml"]
+  pull_request:
+    paths: ["packages/**", "conformance/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.12" }
+      - run: pip install -e packages/python
+      - run: python conformance/runners/run.py
+      - uses: actions/upload-artifact@v4
+        with: { name: result-python, path: conformance/results/python.json }
+
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: "22" }
+      - run: node conformance/runners/run.js
+      - uses: actions/upload-artifact@v4
+        with: { name: result-node, path: conformance/results/node.json }
+
+  dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with: { dotnet-version: "8.0.x" }
+      - run: dotnet run -c Release --project conformance/runners/dotnet
+      - uses: actions/upload-artifact@v4
+        with: { name: result-dotnet, path: conformance/results/dotnet.json }
+
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo run --release --manifest-path conformance/runners/rust/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with: { name: result-rust, path: conformance/results/rust.json }
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v7
+        with: { go-version: "1.22", cache: false }
+      - run: go run .
+        working-directory: conformance/runners/go
+      - uses: actions/upload-artifact@v4
+        with: { name: result-go, path: conformance/results/go.json }
+
+  java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v6
+      - run: gradle run --no-daemon --console=plain
+        working-directory: conformance/runners/java
+      - uses: actions/upload-artifact@v4
+        with: { name: result-java, path: conformance/results/java.json }
+
+  aggregate:
+    needs: [python, node, dotnet, rust, go, java]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.12" }
+      - uses: actions/download-artifact@v4
+        with:
+          path: conformance/_artifacts
+      - name: collect results
+        run: |
+          mkdir -p conformance/results
+          find conformance/_artifacts -name '*.json' -exec cp {} conformance/results/ \;
+          ls -la conformance/results
+      - run: python conformance/aggregate.py
+      - name: show results
+        run: cat conformance/RESULTS.md
+      - uses: actions/upload-artifact@v4
+        with: { name: RESULTS, path: conformance/RESULTS.md }
+      - name: commit the six-language matrix back to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "flatwire-io"
+          git config user.email "flatwire-io@users.noreply.github.com"
+          if ! git diff --quiet -- conformance/RESULTS.md; then
+            git add conformance/RESULTS.md
+            git commit -m "conformance: refresh six-language results matrix [skip ci]"
+            git push
+          else
+            echo "RESULTS.md unchanged"
+          fi

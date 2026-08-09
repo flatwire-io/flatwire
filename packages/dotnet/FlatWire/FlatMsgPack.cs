@@ -59,15 +59,23 @@ public static class FlatMsgPack
 
     private static void WriteInt(ArrayBufferWriterLite w, long v)
     {
-        if (v >= 0 && v <= 0x7f) { w.WriteByte((byte)v); }
-        else if (v < 0 && v >= -32) { w.WriteByte((byte)(v & 0xff)); }
-        else if (v >= -0x80 && v <= 0x7f) { w.WriteByte(0xd0); w.WriteByte((byte)(sbyte)v); }
-        else if (v >= 0 && v <= 0xff) { w.WriteByte(0xcc); w.WriteByte((byte)v); }
-        else if (v >= -0x8000 && v <= 0x7fff) { w.WriteByte(0xd1); w.WriteI16BE((short)v); }
-        else if (v >= 0 && v <= 0xffff) { w.WriteByte(0xcd); w.WriteU16BE((ushort)v); }
-        else if (v >= -0x80000000L && v <= 0x7fffffff) { w.WriteByte(0xd2); w.WriteI32BE((int)v); }
-        else if (v >= 0 && v <= 0xffffffffL) { w.WriteByte(0xce); w.WriteU32BE((uint)v); }
-        else { w.WriteByte(0xd3); w.WriteI64BE(v); }
+        // Canonical scheme: -32..127 fixint; non-negative -> smallest unsigned;
+        // negative -> smallest signed.
+        if (v >= -32 && v <= 127) { w.WriteByte((byte)(v & 0xff)); }
+        else if (v >= 0)
+        {
+            if (v <= 0xff) { w.WriteByte(0xcc); w.WriteByte((byte)v); }
+            else if (v <= 0xffff) { w.WriteByte(0xcd); w.WriteU16BE((ushort)v); }
+            else if (v <= 0xffffffffL) { w.WriteByte(0xce); w.WriteU32BE((uint)v); }
+            else { w.WriteByte(0xcf); w.WriteU64BE((ulong)v); }
+        }
+        else
+        {
+            if (v >= -0x80) { w.WriteByte(0xd0); w.WriteByte((byte)(sbyte)v); }
+            else if (v >= -0x8000) { w.WriteByte(0xd1); w.WriteI16BE((short)v); }
+            else if (v >= -0x80000000L) { w.WriteByte(0xd2); w.WriteI32BE((int)v); }
+            else { w.WriteByte(0xd3); w.WriteI64BE(v); }
+        }
     }
 
     private static void WriteStr(ArrayBufferWriterLite w, string s)
@@ -107,7 +115,12 @@ public static class FlatMsgPack
         if (n <= 15) w.WriteByte((byte)(0x80 | n));
         else if (n <= 0xffff) { w.WriteByte(0xde); w.WriteU16BE((ushort)n); }
         else { w.WriteByte(0xdf); w.WriteU32BE((uint)n); }
-        foreach (var kv in map) { WriteStr(w, kv.Key); WriteValue(w, kv.Value); }
+        // Canonical: sort keys for byte-identical output regardless of map order.
+        foreach (var key in map.Keys.OrderBy(k => k, StringComparer.Ordinal))
+        {
+            WriteStr(w, key);
+            WriteValue(w, map[key]);
+        }
     }
 
     // --- decoding ---------------------------------------------------------
@@ -232,6 +245,7 @@ public static class FlatMsgPack
         public void WriteU32BE(uint v) { Ensure(4); BinaryPrimitives.WriteUInt32BigEndian(_buf.AsSpan(_len), v); _len += 4; }
         public void WriteI32BE(int v) { Ensure(4); BinaryPrimitives.WriteInt32BigEndian(_buf.AsSpan(_len), v); _len += 4; }
         public void WriteI64BE(long v) { Ensure(8); BinaryPrimitives.WriteInt64BigEndian(_buf.AsSpan(_len), v); _len += 8; }
+        public void WriteU64BE(ulong v) { Ensure(8); BinaryPrimitives.WriteUInt64BigEndian(_buf.AsSpan(_len), v); _len += 8; }
         public void WriteFloatBE(float v) { Ensure(4); BinaryPrimitives.WriteSingleBigEndian(_buf.AsSpan(_len), v); _len += 4; }
         public void WriteDoubleBE(double v) { Ensure(8); BinaryPrimitives.WriteDoubleBigEndian(_buf.AsSpan(_len), v); _len += 8; }
     }

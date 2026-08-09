@@ -35,7 +35,7 @@ function unescape(s) {
 function typeOf(v) {
   if (v === null || v === undefined) return 'null';
   if (typeof v === 'boolean') return 'bool';
-  if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'float';
+  if (typeof v === 'number') return Number.isSafeInteger(v) ? 'int' : 'float';
   if (typeof v === 'string') return 'str';
   if (Array.isArray(v)) return 'array';
   if (typeof v === 'object') return 'object';

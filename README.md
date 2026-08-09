@@ -35,7 +35,17 @@ The most common large payload is a **big homogeneous collection** (100k records)
 - **Encoding** writes each element straight to the output stream, so peak memory is bounded by the *largest single element* — not the length of the collection.
 - **Decoding** parses a top-level JSON array lazily, yielding one element at a time, so you never hold the whole array at once.
 
-The wire format stays **plain JSON**, byte-compatible with each ecosystem's standard serializer — nothing downstream changes.
+The wire format stays **plain JSON**, byte-compatible with each ecosystem's standard serializer — nothing downstream changes. XML and binary MessagePack are opt-in via `format=`.
+
+## One identical contract, proven across six languages
+
+The technique isn't the differentiator — every ecosystem ships a streaming primitive. **The differentiator is one identical API and one identical wire, verified across all six languages in CI.** A shared [conformance corpus](conformance/) (unicode edge cases, deep nesting, integer-width boundaries, huge numbers, empty collections) runs through every implementation on every push, and an aggregator publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md):
+
+- **Round-trip:** every corpus case decodes back to what was encoded, in **all six languages**.
+- **MessagePack byte-identity:** every value encodes to the **exact same bytes** in Python, Node, .NET, Rust, Go, and Java — canonical integer widths, IEEE-754 floats, sorted map keys. A claim no other polyglot serializer makes.
+- **JSON / XML:** round-trip-guaranteed; being text formats, byte representation legitimately varies across ecosystems (escaping, whitespace, float text) — and the matrix says so honestly rather than overclaiming.
+
+The suite has already caught and fixed real cross-language bugs. See [`conformance/`](conformance/).
 
 ## Measured results
 

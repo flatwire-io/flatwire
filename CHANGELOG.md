@@ -6,6 +6,34 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-08
+
+### Added
+- **Cross-language conformance suite** ([`conformance/`](conformance)). A shared
+  language-neutral corpus (unicode edge cases, deep nesting, integer-width
+  boundaries, huge numbers, empty collections, punctuation-in-strings) is run
+  through **all six implementations** in CI, and an aggregator publishes a
+  round-trip + byte-identity matrix ([`conformance/RESULTS.md`](conformance/RESULTS.md)).
+  This turns "one identical API across six languages" from a claim into a
+  CI-enforced spec. The suite already caught and fixed three real bugs during
+  development.
+
+### Changed
+- **Canonical MessagePack encoding — now byte-identical across all six
+  languages.** Integer encoding follows one canonical scheme (non-negative →
+  smallest unsigned type, negative → smallest signed type) and **map keys are
+  sorted**, so every value encodes to the exact same bytes in Python, Node, .NET,
+  Rust, Go, and Java. Output remains valid MessagePack, wire-compatible with
+  standard libraries, and flatwire still decodes any valid MessagePack. (JSON and
+  XML remain round-trip-guaranteed but, being text formats, are not byte-identical
+  across ecosystems — escaping/whitespace/float-text legitimately differ.)
+
+### Fixed
+- JS: encoding an empty collection then streaming it back (msgpack) no longer
+  throws; multibyte-safe empty-chunk handling in the msgpack reader.
+- JS: integer-valued numbers beyond 2^53 (e.g. `1e300`) are correctly encoded as
+  floats, not misrouted to integer/BigInt paths, in both XML and MessagePack.
+
 ## [0.4.0] - 2026-08-08
 
 ### Added

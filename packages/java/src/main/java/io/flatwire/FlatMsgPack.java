@@ -62,9 +62,12 @@ public final class FlatMsgPack {
         } else if (v instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) v;
             writeMapHeader(o, map.size());
-            for (Map.Entry<String, Object> e : map.entrySet()) {
-                writeStr(o, e.getKey());
-                writeValue(o, e.getValue());
+            // Canonical: sort keys for byte-identical output regardless of order.
+            java.util.List<String> keys = new java.util.ArrayList<>(map.keySet());
+            java.util.Collections.sort(keys);
+            for (String k : keys) {
+                writeStr(o, k);
+                writeValue(o, map.get(k));
             }
         } else if (v instanceof Iterable) {
             List<Object> list = new ArrayList<>();
@@ -82,22 +85,38 @@ public final class FlatMsgPack {
     }
 
     private static void writeInt(DataOutputStream o, long v) throws IOException {
-        if (v >= 0 && v <= 0x7f) {
-            o.writeByte((int) v);
-        } else if (v < 0 && v >= -32) {
+        // Canonical: -32..127 fixint; non-negative -> smallest unsigned; negative
+        // -> smallest signed.
+        if (v >= -32 && v <= 127) {
             o.writeByte((int) (v & 0xff));
-        } else if (v >= -0x80 && v <= 0x7f) {
-            o.writeByte(0xd0);
-            o.writeByte((int) v);
-        } else if (v >= -0x8000 && v <= 0x7fff) {
-            o.writeByte(0xd1);
-            o.writeShort((int) v);
-        } else if (v >= -0x80000000L && v <= 0x7fffffffL) {
-            o.writeByte(0xd2);
-            o.writeInt((int) v);
+        } else if (v >= 0) {
+            if (v <= 0xffL) {
+                o.writeByte(0xcc);
+                o.writeByte((int) v);
+            } else if (v <= 0xffffL) {
+                o.writeByte(0xcd);
+                o.writeShort((int) v);
+            } else if (v <= 0xffffffffL) {
+                o.writeByte(0xce);
+                o.writeInt((int) v);
+            } else {
+                o.writeByte(0xcf);
+                o.writeLong(v);
+            }
         } else {
-            o.writeByte(0xd3);
-            o.writeLong(v);
+            if (v >= -0x80) {
+                o.writeByte(0xd0);
+                o.writeByte((int) v);
+            } else if (v >= -0x8000) {
+                o.writeByte(0xd1);
+                o.writeShort((int) v);
+            } else if (v >= -0x80000000L) {
+                o.writeByte(0xd2);
+                o.writeInt((int) v);
+            } else {
+                o.writeByte(0xd3);
+                o.writeLong(v);
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 [package]
 name = "flatwire"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 description = "Streaming JSON, XML and MessagePack serialization that keeps memory flat and time linear - stream large collections element-by-element."
 license = "Apache-2.0"
@@ -14,3 +14,4 @@ categories = ["encoding"]
 [dependencies]
 serde = "1"
 serde_json = "1"
+

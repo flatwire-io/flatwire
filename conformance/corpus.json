@@ -1,0 +1,22 @@
+{
+  "about": "flatwire cross-language conformance corpus. Each case is a top-level collection (the unit flatwire streams). Runners in every language encode+decode each case in each supported format, record whether it round-trips, and hash the encoded bytes so an aggregator can prove which cases are byte-identical across runtimes. 'tier' documents the strongest claim we make: 'identical' = byte-identical encode expected across all languages; 'roundtrip' = semantic round-trip only (encoding legitimately varies, e.g. float text, so byte-identity is not claimed).",
+  "cases": [
+    { "name": "empty", "tier": "identical", "note": "empty collection", "elements": [] },
+    { "name": "nulls_bools", "tier": "identical", "note": "null and booleans", "elements": [null, true, false] },
+    { "name": "int_fixints", "tier": "identical", "note": "msgpack fixint range", "elements": [0, 1, 127, -1, -32] },
+    { "name": "int_boundaries", "tier": "identical", "note": "int width boundaries within JS safe range", "elements": [128, 255, 256, -128, -129, 32767, -32768, 65535, 65536, 2147483647, -2147483648, 2147483648, 9007199254740991] },
+    { "name": "int_beyond_js_safe", "tier": "roundtrip", "note": "ints above 2^53 lose precision in JS Number; expected to diverge for JS", "elements": [9007199254740993, 9223372036854775807] },
+    { "name": "floats_simple", "tier": "roundtrip", "note": "float text formatting varies across runtimes; round-trip only", "elements": [1.5, -2.5, 3.14159, 0.1, -0.0] },
+    { "name": "floats_extreme", "tier": "roundtrip", "note": "large/small magnitudes; formatting varies", "elements": [1e10, 1e-10, 1e300, 2.2250738585072014e-308] },
+    { "name": "strings_basic", "tier": "identical", "note": "ascii strings including empty", "elements": ["", "plain", "row-42", "with spaces"] },
+    { "name": "strings_escapes", "tier": "roundtrip", "note": "control chars and quotes; JSON escaping conventions vary (\\u vs literal)", "elements": ["tab\there", "newline\nhere", "quote\"here", "backslash\\here", "slash/here"] },
+    { "name": "strings_unicode", "tier": "roundtrip", "note": "multibyte + surrogate-pair emoji; JSON non-ascii escaping varies", "elements": ["café", "unïcode ✓", "€uro", "emoji 🎯", "mixed é✓€🎯"] },
+    { "name": "strings_punctuation", "tier": "identical", "note": "commas/brackets inside strings (the scanner trap)", "elements": ["has, comma", "has ] bracket", "v,][", "{not:json}"] },
+    { "name": "object_small", "tier": "identical", "note": "small object, keys in a fixed order", "elements": [{ "a": 1, "b": "x", "c": true, "d": null }] },
+    { "name": "object_unicode_keys", "tier": "roundtrip", "note": "unicode keys; ordering/escaping may vary", "elements": [{ "café": 1, "✓": 2, "emoji🎯": 3 }] },
+    { "name": "arrays_nested", "tier": "identical", "note": "nested arrays and objects", "elements": [[1, [2, [3, [4]]]], { "x": [1, { "y": [2, 3] }] }] },
+    { "name": "deep_nesting", "tier": "identical", "note": "20-level nested array as a single element", "elements": [[[[[[[[[[[[[[[[[[[[["deep"]]]]]]]]]]]]]]]]]]]]] },
+    { "name": "records_homogeneous", "tier": "identical", "note": "the common large-collection shape (small sample)", "elements": [{ "id": 0, "name": "row-0", "ok": true }, { "id": 1, "name": "row-1", "ok": false }, { "id": 2, "name": "row-2", "ok": true }] },
+    { "name": "mixed", "tier": "roundtrip", "note": "heterogeneous elements incl floats", "elements": [1, "two", 3.0, null, true, [4], { "k": 5 }] }
+  ]
+}

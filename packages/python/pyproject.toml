@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flatwire"
-version = "0.4.0"
+version = "0.5.0"
 description = "Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -32,3 +32,4 @@ packages = ["flatwire"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+

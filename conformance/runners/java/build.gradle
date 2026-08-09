@@ -1,0 +1,32 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
+}
+
+// Compile the flatwire Java library sources directly alongside the runner, so
+// the conformance runner works on CI without a published artifact.
+sourceSets {
+    main {
+        java {
+            srcDir '../../../packages/java/src/main/java'
+            srcDir 'src'
+        }
+    }
+}
+
+application {
+    mainClass = 'ConformanceRunner'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}

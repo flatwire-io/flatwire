@@ -19,10 +19,12 @@ fn write_value<W: Write>(w: &mut W, v: &Value) -> io::Result<()> {
         Value::Bool(true) => w.write_all(&[0xc3]),
         Value::Bool(false) => w.write_all(&[0xc2]),
         Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                write_int(w, i)
-            } else if let Some(u) = n.as_u64() {
+            // Canonical: non-negative -> smallest unsigned; negative -> smallest
+            // signed; non-integers -> float64.
+            if let Some(u) = n.as_u64() {
                 write_uint(w, u)
+            } else if let Some(i) = n.as_i64() {
+                write_neg_int(w, i)
             } else {
                 let f = n.as_f64().unwrap();
                 w.write_all(&[0xcb])?;
@@ -48,17 +50,16 @@ fn write_value<W: Write>(w: &mut W, v: &Value) -> io::Result<()> {
     }
 }
 
-fn write_int<W: Write>(w: &mut W, v: i64) -> io::Result<()> {
-    if (0..=0x7f).contains(&v) {
-        w.write_all(&[v as u8])
-    } else if (-32..0).contains(&v) {
+fn write_neg_int<W: Write>(w: &mut W, v: i64) -> io::Result<()> {
+    // v is always negative here (non-negatives go through write_uint).
+    if v >= -32 {
         w.write_all(&[(v & 0xff) as u8])
-    } else if (-0x80..=0x7f).contains(&v) {
-        w.write_all(&[0xd0, v as u8])
-    } else if (-0x8000..=0x7fff).contains(&v) {
+    } else if v >= -0x80 {
+        w.write_all(&[0xd0, v as i8 as u8])
+    } else if v >= -0x8000 {
         w.write_all(&[0xd1])?;
         w.write_all(&(v as i16).to_be_bytes())
-    } else if (-0x8000_0000..=0x7fff_ffff).contains(&v) {
+    } else if v >= -0x8000_0000 {
         w.write_all(&[0xd2])?;
         w.write_all(&(v as i32).to_be_bytes())
     } else {

@@ -47,28 +47,34 @@ def _encode_value(v: Any, out: bytearray) -> None:
 
 
 def _encode_int(v: int, out: bytearray) -> None:
-    if 0 <= v <= 0x7F:
-        out.append(v)
-    elif -32 <= v < 0:
+    # Canonical scheme (byte-identical across all flatwire languages):
+    #   -32..127          -> fixint
+    #   non-negative      -> smallest UNSIGNED type that fits
+    #   negative          -> smallest SIGNED type that fits
+    if -32 <= v <= 127:
         out.append(v & 0xFF)
-    elif -0x80 <= v <= 0x7F:
-        out.append(0xD0); out.extend(struct.pack(">b", v))
-    elif 0 <= v <= 0xFF:
-        out.append(0xCC); out.append(v)
-    elif -0x8000 <= v <= 0x7FFF:
-        out.append(0xD1); out.extend(struct.pack(">h", v))
-    elif 0 <= v <= 0xFFFF:
-        out.append(0xCD); out.extend(struct.pack(">H", v))
-    elif -0x80000000 <= v <= 0x7FFFFFFF:
-        out.append(0xD2); out.extend(struct.pack(">i", v))
-    elif 0 <= v <= 0xFFFFFFFF:
-        out.append(0xCE); out.extend(struct.pack(">I", v))
-    elif -0x8000000000000000 <= v <= 0x7FFFFFFFFFFFFFFF:
-        out.append(0xD3); out.extend(struct.pack(">q", v))
-    elif 0 <= v <= 0xFFFFFFFFFFFFFFFF:
-        out.append(0xCF); out.extend(struct.pack(">Q", v))
+    elif v >= 0:
+        if v <= 0xFF:
+            out.append(0xCC); out.append(v)
+        elif v <= 0xFFFF:
+            out.append(0xCD); out.extend(struct.pack(">H", v))
+        elif v <= 0xFFFFFFFF:
+            out.append(0xCE); out.extend(struct.pack(">I", v))
+        elif v <= 0xFFFFFFFFFFFFFFFF:
+            out.append(0xCF); out.extend(struct.pack(">Q", v))
+        else:
+            raise OverflowError("flatwire msgpack: integer out of 64-bit range")
     else:
-        raise OverflowError("flatwire msgpack: integer out of 64-bit range")
+        if v >= -0x80:
+            out.append(0xD0); out.extend(struct.pack(">b", v))
+        elif v >= -0x8000:
+            out.append(0xD1); out.extend(struct.pack(">h", v))
+        elif v >= -0x80000000:
+            out.append(0xD2); out.extend(struct.pack(">i", v))
+        elif v >= -0x8000000000000000:
+            out.append(0xD3); out.extend(struct.pack(">q", v))
+        else:
+            raise OverflowError("flatwire msgpack: integer out of 64-bit range")
 
 
 def _encode_len_prefix(out: bytearray, n: int, fix_base: int, fix_max: int,
@@ -115,8 +121,11 @@ def _encode_array(v, out: bytearray) -> None:
 
 
 def _encode_map(v: dict, out: bytearray) -> None:
-    _encode_len_prefix(out, len(v), 0x80, 15, 0xDE, 0xDF)
-    for k, val in v.items():
+    # Canonical: sort keys so the encoding is byte-identical regardless of the
+    # source map's iteration order (round-trips the same either way).
+    items = sorted(v.items(), key=lambda kv: str(kv[0]))
+    _encode_len_prefix(out, len(items), 0x80, 15, 0xDE, 0xDF)
+    for k, val in items:
         _encode_value(k, out)
         _encode_value(val, out)
 
