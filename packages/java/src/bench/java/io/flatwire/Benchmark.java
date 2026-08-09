@@ -52,6 +52,37 @@ public final class Benchmark {
         return after - before;
     }
 
+    // Peak LIVE heap during the operation, sampled from a background thread.
+    // Cumulative allocation (getThreadAllocatedBytes) counts every per-element
+    // object, so streaming decode looks similar to materializing; the flat-memory
+    // promise is about peak live heap, which this captures.
+    static long peakLiveDuring(Op op) throws Exception {
+        Runtime rt = Runtime.getRuntime();
+        System.gc();
+        long baseline = rt.totalMemory() - rt.freeMemory();
+        final long[] peak = {baseline};
+        final boolean[] stop = {false};
+        Thread sampler = new Thread(() -> {
+            while (!stop[0]) {
+                long used = rt.totalMemory() - rt.freeMemory();
+                if (used > peak[0]) peak[0] = used;
+                try {
+                    Thread.sleep(0, 200_000);
+                } catch (InterruptedException ignored) {
+                    return;
+                }
+            }
+        });
+        sampler.setDaemon(true);
+        sampler.start();
+        op.run();
+        long end = rt.totalMemory() - rt.freeMemory();
+        if (end > peak[0]) peak[0] = end;
+        stop[0] = true;
+        sampler.join();
+        return Math.max(0, peak[0] - baseline);
+    }
+
     static double medianSeconds(Op op, int iters) throws Exception {
         op.run(); // warm up
         double[] samples = new double[iters];
@@ -87,6 +118,7 @@ public final class Benchmark {
 
     public static void main(String[] args) throws Exception {
         System.out.println("Java benchmark: Jackson materialized vs flatwire streaming\n");
+        System.out.println("(encode = cumulative allocated bytes; decode = peak live heap)\n");
         System.out.printf("%9s %9s | %12s %12s | %12s %12s%n",
                 "elements", "payload", "enc whole", "enc stream", "agg whole", "agg stream");
         System.out.println("-".repeat(78));
@@ -102,13 +134,14 @@ public final class Benchmark {
             });
             long encStream = allocatedBy(() -> FlatWire.encodeArray(items, new NullOut()));
 
-            long aggWhole = allocatedBy(() -> {
+            // Decode uses peak-live (not cumulative) so the streaming win is visible.
+            long aggWhole = peakLiveDuring(() -> {
                 Row[] all = MAPPER.readValue(blob, Row[].class);
                 long t = 0;
                 for (Row r : all) t += r.id();
                 if (t < 0) throw new IOException();
             });
-            long aggStream = allocatedBy(() -> {
+            long aggStream = peakLiveDuring(() -> {
                 final long[] t = {0};
                 FlatWire.decodeArray(new ByteArrayInputStream(blob), Row.class, r -> t[0] += r.id());
                 if (t[0] < 0) throw new IOException();
