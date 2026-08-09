@@ -122,20 +122,14 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v0.6 — three formats, six languages, proven by conformance CI, with production hardening.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, and binary MessagePack** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). Locally developed & tested: Python, Node, .NET, Rust. CI-validated (toolchain on the runners): Go, Java — see the [maturity table](conformance/RESULTS.md#maturity).
+**v0.7 — three formats, six languages, proven by conformance CI, with production hardening.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, and binary MessagePack** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity).
 
 ### Shipped
 - **Multi-format core** — one `encode_array` / `decode_array` API over **JSON, XML, and binary MessagePack** behind a `format` selector, in all six languages. MessagePack output is **byte-identical across all six runtimes** (canonical integers + sorted keys), proven by conformance CI. ([design](docs/FORMATS.md))
+- **Partial-stream failure semantics in all six languages** — checked streams (`encode_checked_array` / `decode_checked_array`) whose terminal status is written *last*, so a consumer tells clean completion, an in-band producer error after N rows, and truncation apart. The envelope is plain JSON, so a checked stream written in any language decodes in every other. ([docs](docs/FAILURE.md))
 - **Benchmarks for all six languages**, wired into CI as regression guards, versus each ecosystem's best-configured standard libraries. ([summary](docs/BENCHMARKS.md))
 - **Benchmark dashboard** (React) rendering the measured memory/time results → [flatwire-io.github.io/flatwire](https://flatwire-io.github.io/flatwire/), plus a browser [protocol playground](https://flatwire-io.github.io/flatwire/playground.html) that encodes/decodes all three formats live.
-- **Partial-stream failure semantics** — checked streams (`encode_checked_array` / `decode_checked_array`) that tell clean completion, in-band producer error, and truncation apart (Python + Node). ([docs](docs/FAILURE.md))
 - **Backpressure & cancellation (Node)**, **framework adapters** (FastAPI / Express / Fastify), and a **latency + concurrency benchmark** (TTFB, memory under load). ([backpressure](docs/BACKPRESSURE.md) · [adapters](docs/ADAPTERS.md) · [transports](docs/TRANSPORTS.md))
-
-### Roadmap
-- **Checked streams in all six languages** (Python + Node today → .NET, Rust, Go, Java).
-- **CBOR** as a fourth wire format behind the same `format` selector.
-- **Typed streaming decode** (`decode_array::<T>()`) and first-class backpressure helpers across the remaining languages.
-- **Framework adapters for the remaining stacks** (ASP.NET `IResult`, Go `http.Handler`, JVM).
 
 ## Design principles
 

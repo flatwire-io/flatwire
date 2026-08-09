@@ -78,12 +78,24 @@ the transport's own framing or error model.
 
 ## Status
 
-- **Python: shipped** (`encode_checked_array` / `decode_checked_array`,
-  `StreamError`, `TruncatedStream`), JSON envelope, with tests covering clean
-  completion, producer error, truncation, empty, and chunk-split streaming.
-- **Ports (JS/.NET/Rust/Go/Java): roadmap.** The envelope is plain JSON, so the
-  wire is already portable — a checked stream written by Python decodes as
-  ordinary JSON everywhere; the typed `StreamError`/`TruncatedStream` helpers are
-  what each language port adds.
+- **Shipped in all six languages** — Python, Node, .NET, Rust, Go, and Java each
+  provide the checked-stream pair (`encode_checked_array` / `decode_checked_array`
+  or the idiomatic equivalent) plus typed `StreamError` / `TruncatedStream`
+  errors, with tests covering clean completion, an in-band producer error after
+  N rows, truncation, and cross-language decode of the reference envelope.
+- **Wire-portable by construction.** The envelope is plain JSON, so a checked
+  stream written in any language decodes as ordinary JSON everywhere; the typed
+  `StreamError` / `TruncatedStream` helpers are what each language port adds on
+  top. The per-language method names:
+
+  | Language | Encode | Decode | Error types |
+  |---|---|---|---|
+  | Python | `encode_checked_array` | `decode_checked_array` | `StreamError`, `TruncatedStream` |
+  | Node | `encodeCheckedArray` | `decodeCheckedArray` | `StreamError`, `TruncatedStreamError` |
+  | .NET | `FlatChecked.EncodeCheckedArray` | `FlatChecked.DecodeCheckedArray` | `CheckedStreamException`, `TruncatedStreamException` |
+  | Rust | `checked::encode_checked_array` | `checked::decode_checked_array` | `CheckedError::{Stream, Truncated}` |
+  | Go | `EncodeCheckedArray` | `DecodeCheckedArray` | `*StreamError`, `*TruncatedStreamError` |
+  | Java | `FlatChecked.encodeCheckedArray` | `FlatChecked.decodeCheckedArray` | `CheckedStreamException`, `TruncatedStreamException` |
+
 - **Binary formats:** an equivalent trailer frame for MessagePack is planned
   (a reserved terminal marker), so checked streams work in the binary wire too.

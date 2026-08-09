@@ -25,6 +25,32 @@ with open("out.json", "rb") as fp:
 
 Wire format is plain JSON, so nothing downstream changes.
 
+## Checked streams (partial-stream failure semantics)
+
+When you stream a large array over HTTP you have already sent `200 OK` before an
+error can occur. Checked streams wrap the collection in an envelope whose terminal
+status is written *last*, so the consumer can tell clean completion, an in-band
+producer error after N rows, and truncation apart:
+
+```python
+from flatwire import encode_checked_array, decode_checked_array, StreamError, TruncatedStream
+
+with open("out.json", "wb") as fp:
+    encode_checked_array(rows, fp)          # writes ...,"complete":true} last
+
+with open("out.json", "rb") as fp:
+    try:
+        for row in decode_checked_array(fp):
+            handle(row)
+    except StreamError as e:        # producer failed after N rows (details on the wire)
+        ...
+    except TruncatedStream:         # stream ended without a terminal status
+        ...
+```
+
+The envelope is plain JSON, so a checked stream written in any flatwire language
+decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
+
 ## Streaming XML (v0.3)
 
 The same API streams a typed, fully round-trippable **XML** representation — for

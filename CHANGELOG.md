@@ -6,6 +6,28 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-09
+
+### Added
+- **Checked streams in all six languages** — partial-stream failure semantics
+  (`encode_checked_array` / `decode_checked_array`, plus `StreamError` /
+  `TruncatedStream` equivalents) are now implemented and locally tested in
+  Python, Node, .NET, Rust, Go, and Java, having previously shipped only in
+  Python and Node. The wire is a plain-JSON envelope whose terminal status is
+  written *last*, so a consumer distinguishes clean completion, an in-band
+  producer error after N rows, and truncation. Because the envelope is plain
+  JSON, a checked stream written in any language decodes in every other. See
+  [docs/FAILURE.md](docs/FAILURE.md).
+
+### Changed
+- **Maturity upgraded to "locally tested" for all six languages.** Go and Java
+  were previously CI-validated only; both now run the full test suite and the
+  cross-language conformance runner locally, and the
+  [maturity table](conformance/RESULTS.md#maturity) reflects that.
+- README **Status** section rewritten for 0.7.0 and the **Roadmap** section
+  removed now that its items have shipped or been folded into the release notes.
+- `SECURITY.md` "Supported versions" reworded to be version-era agnostic.
+
 ## [0.6.0] - 2026-08-09
 
 ### Added

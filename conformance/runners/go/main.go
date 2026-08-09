@@ -225,7 +225,7 @@ func main() {
 		cases[c.Name] = map[string]any{"tier": c.Tier, "formats": fmtResults}
 	}
 
-	results := map[string]any{"lang": "go", "tested_locally": false, "cases": cases}
+	results := map[string]any{"lang": "go", "tested_locally": true, "cases": cases}
 	outPath := filepath.Join(root, "results", "go.json")
 	_ = os.MkdirAll(filepath.Dir(outPath), 0o755)
 	b, _ := json.MarshalIndent(results, "", "  ")

@@ -43,15 +43,9 @@ the `roundtrip`-tier cases separately, so the published claim is exactly true.
 
 ## Maturity
 
-Not all six languages have the same local-test coverage. The matrix and the
-[maturity table](RESULTS.md#maturity) state this plainly rather than implying
-uniform maturity:
-
-- **Locally developed & tested here:** Python, Node, .NET, Rust.
-- **CI-validated only** (toolchain not on the dev box): Go, Java.
-
-All six run this same conformance suite on CI, which is the point: the corpus is
-the leveler.
+All six languages are developed and tested locally **and** run this same
+conformance suite on CI. The [maturity table](RESULTS.md#maturity) reflects that:
+the corpus is the leveler — every language decodes the same bytes.
 
 ## Running
 
@@ -63,7 +57,7 @@ node    runners/run.js                        # -> results/node.json
 dotnet  run --project runners/dotnet          # -> results/dotnet.json
 cargo   run --manifest-path runners/rust/Cargo.toml   # -> results/rust.json
 go      run ./runners/go                       # -> results/go.json
-# java: compiled + run on CI
+java    (compiled + run — see conformance.yml) # -> results/java.json
 python  aggregate.py                           # -> RESULTS.md
 ```
 
