@@ -56,13 +56,19 @@ def encode_array(items: Iterable[Any], fp: BinaryIO) -> int:
     return count
 
 
-def decode_array(fp: BinaryIO, chunk_size: int = 65536) -> Iterator[Any]:
+def decode_array(
+    fp: BinaryIO, chunk_size: int = 65536, max_depth: int = 200
+) -> Iterator[Any]:
     """Lazily parse a top-level JSON array, yielding one element at a time.
 
     A hand-written scanner tracks bracket/brace depth and string state so it can
     find element boundaries (the commas at depth 1) without loading the whole
     array. Each element is handed to json.loads individually, so memory stays
     proportional to the largest element rather than the entire array.
+
+    ``max_depth`` bounds how deeply an element may nest before the scanner
+    rejects the input, so a hostile stream of ``[[[[...`` cannot drive unbounded
+    work. Set it to 0 to disable the check.
 
     Only a top-level array is supported in v0.1; anything else raises ValueError.
     """
@@ -110,6 +116,10 @@ def decode_array(fp: BinaryIO, chunk_size: int = 65536) -> Iterator[Any]:
                 pos += 1
             elif ch in "{[":
                 depth += 1
+                if max_depth and depth > max_depth:
+                    raise ValueError(
+                        f"decode_array: nesting depth exceeded {max_depth}"
+                    )
                 pos += 1
             elif ch in "}]":
                 if ch == "]" and depth == 0:

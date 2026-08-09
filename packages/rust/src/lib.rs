@@ -60,6 +60,7 @@ pub struct ArrayIter<R: Read> {
     buf: Vec<u8>,
     pos: usize,
     depth: i64,
+    max_depth: i64,
     in_string: bool,
     escape: bool,
     started: bool,
@@ -72,10 +73,20 @@ pub fn decode_array<R: Read>(reader: R) -> ArrayIter<R> {
         buf: Vec::new(),
         pos: 0,
         depth: 0,
+        max_depth: 200,
         in_string: false,
         escape: false,
         started: false,
         finished: false,
+    }
+}
+
+impl<R: Read> ArrayIter<R> {
+    /// Bound how deeply a single element may nest before the iterator rejects the
+    /// input, guarding against hostile `[[[[...` streams. Use 0 to disable.
+    pub fn with_max_depth(mut self, max_depth: i64) -> Self {
+        self.max_depth = max_depth;
+        self
     }
 }
 
@@ -128,7 +139,16 @@ impl<R: Read> Iterator for ArrayIter<R> {
                 }
                 match ch {
                     b'"' => self.in_string = true,
-                    b'{' | b'[' => self.depth += 1,
+                    b'{' | b'[' => {
+                        self.depth += 1;
+                        if self.max_depth > 0 && self.depth > self.max_depth {
+                            self.finished = true;
+                            return Some(Err(io::Error::new(
+                                io::ErrorKind::InvalidData,
+                                "decode_array: nesting depth exceeded",
+                            )));
+                        }
+                    }
                     b']' if self.depth == 0 => {
                         let s = std::str::from_utf8(&self.buf[..self.pos])
                             .unwrap_or("")

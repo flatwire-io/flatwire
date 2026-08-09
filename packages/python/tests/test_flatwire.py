@@ -80,6 +80,18 @@ def test_decode_array_rejects_non_array():
         pass
 
 
+def test_decode_array_enforces_max_depth():
+    # A single element nested far deeper than the guard must be rejected before
+    # it can drive unbounded scanning work.
+    inner = "[" * 300 + "0" + "]" * 300
+    buf = io.BytesIO(("[" + inner + "]").encode("utf-8"))
+    try:
+        list(flatwire.decode_array(buf, max_depth=200))
+        assert False, "expected ValueError for excessive nesting"
+    except ValueError:
+        pass
+
+
 def test_streaming_array_uses_far_less_peak_memory():
     # The core promise: peak memory for streaming a large array is bounded by one
     # element, not the whole collection. Compare peak allocation of building the

@@ -57,3 +57,14 @@ fn decode_array_rejects_non_array() {
     let first = decode_array(Cursor::new(bytes)).next().unwrap();
     assert!(first.is_err());
 }
+
+#[test]
+fn decode_array_enforces_max_depth() {
+    let inner = "[".repeat(300) + "0" + &"]".repeat(300);
+    let payload = format!("[{inner}]").into_bytes();
+    let first = decode_array(Cursor::new(payload))
+        .with_max_depth(200)
+        .next()
+        .unwrap();
+    assert!(first.is_err());
+}

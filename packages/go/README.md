@@ -1,0 +1,52 @@
+# flatwire (Go)
+
+**Streaming JSON serialization that keeps memory flat and time linear.** Stream
+large collections element-by-element instead of materializing the whole payload,
+so peak memory is bounded by the largest single element — not the collection
+size. Built on `encoding/json`; wire format is plain JSON.
+
+Part of the cross-language [flatwire](https://github.com/flatwire-io/flatwire)
+project (identical API in Python, Node, .NET, Rust, Go, and Java).
+
+## Install
+
+```bash
+go get github.com/flatwire-io/flatwire/packages/go
+```
+
+## Usage
+
+```go
+import flatwire "github.com/flatwire-io/flatwire/packages/go"
+
+// Whole value
+b, _ := flatwire.Encode(value)
+var v MyType
+_ = flatwire.Decode(b, &v)
+
+// Stream a large collection — flat memory
+_, _ = flatwire.EncodeArray(items, w)
+_ = flatwire.DecodeArray(r, func(raw json.RawMessage) error {
+    // one element at a time; the whole array is never in memory at once
+    return nil
+})
+```
+
+## API
+
+| Function | Description |
+|---|---|
+| `Encode(v)` | value → `[]byte` |
+| `Decode(data, &v)` | bytes → value |
+| `EncodeTo(v, w)` | stream a single value out |
+| `DecodeFrom(r, &v)` | read a single value |
+| `EncodeArray(items, w)` | stream a large collection |
+| `DecodeArray(r, yield)` | stream a large array, element by element |
+
+## License
+
+Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).
+
+## Changelog
+
+See [CHANGELOG.md](https://github.com/flatwire-io/flatwire/blob/main/CHANGELOG.md).

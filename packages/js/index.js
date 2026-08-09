@@ -53,8 +53,9 @@ async function encodeArray(items, writable) {
 // Lazily parse a top-level JSON array from a readable, yielding one element at a
 // time. Mirrors the Python scanner: a persistent cursor tracks bracket/brace
 // depth and string state to find the depth-1 commas that separate elements,
-// without ever rescanning bytes across chunk boundaries.
-async function* decodeArray(readable) {
+// without ever rescanning bytes across chunk boundaries. `maxDepth` bounds how
+// deeply a single element may nest before the input is rejected (0 disables it).
+async function* decodeArray(readable, { maxDepth = 200 } = {}) {
   let buf = '';
   let pos = 0;           // persistent scan cursor - never rescans prior bytes
   let elemStart = 0;
@@ -83,7 +84,11 @@ async function* decodeArray(readable) {
         continue;
       }
       if (ch === '"') { inString = true; pos += 1; }
-      else if (ch === '{' || ch === '[') { depth += 1; pos += 1; }
+      else if (ch === '{' || ch === '[') {
+        depth += 1;
+        if (maxDepth && depth > maxDepth) throw new Error(`decodeArray: nesting depth exceeded ${maxDepth}`);
+        pos += 1;
+      }
       else if (ch === '}' || ch === ']') {
         if (ch === ']' && depth === 0) {
           const seg = buf.slice(elemStart, pos).trim();

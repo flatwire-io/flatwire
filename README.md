@@ -10,6 +10,18 @@
   <a href="#status">Status</a>
 </p>
 
+<p align="center">
+  <a href="https://pypi.org/project/flatwire/"><img alt="PyPI" src="https://img.shields.io/pypi/v/flatwire?label=PyPI&logo=pypi&logoColor=white"></a>
+  <a href="https://www.npmjs.com/package/flatwire"><img alt="npm" src="https://img.shields.io/npm/v/flatwire?label=npm&logo=npm"></a>
+  <a href="https://www.nuget.org/packages/FlatWire"><img alt="NuGet" src="https://img.shields.io/nuget/v/FlatWire?label=NuGet&logo=nuget"></a>
+  <a href="https://crates.io/crates/flatwire"><img alt="crates.io" src="https://img.shields.io/crates/v/flatwire?label=crates.io&logo=rust"></a>
+  <a href="https://central.sonatype.com/artifact/io.github.flatwire-io/flatwire"><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.flatwire-io/flatwire?label=Maven%20Central"></a>
+  <a href="https://pkg.go.dev/github.com/flatwire-io/flatwire/packages/go"><img alt="Go Reference" src="https://pkg.go.dev/badge/github.com/flatwire-io/flatwire/packages/go.svg"></a>
+  <br>
+  <a href="https://github.com/flatwire-io/flatwire/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/flatwire-io/flatwire/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
+</p>
+
 ---
 
 ## The problem
@@ -83,10 +95,10 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v0.1 — small on purpose.** The v0.1 surface is the streaming array pair plus whole-value convenience, on a plain-JSON wire, in all six ecosystems. Locally tested here: Python, Node, .NET, Rust. Validated in CI (their toolchains live on the runners): Go, Java.
+**v0.2 — small and honest.** The surface is the streaming array pair plus whole-value convenience, on a plain-JSON wire, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. Locally tested here: Python, Node, .NET, Rust. Validated in CI (their toolchains live on the runners): Go, Java.
 
 ### Roadmap
-- Per-ecosystem benchmark harnesses (BenchmarkDotNet, JMH, `memray`, `go test -benchmem`, criterion) wired into CI as regression guards.
+- Per-ecosystem benchmark harnesses (BenchmarkDotNet, JMH, `memray`, `go test -benchmem`, criterion) and a head-to-head comparison report vs. the best-configured standard libraries (orjson, msgspec, System.Text.Json source-gen, Jackson streaming, fast-json-stringify), wired into CI as regression guards.
 - A binary wire format for internal service-to-service traffic (MessagePack/protobuf), evaluated with data — external JSON stays JSON.
 - Backpressure-aware helpers and framework adapters (ASP.NET, Express/Fastify, FastAPI).
 

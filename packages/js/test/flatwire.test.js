@@ -76,3 +76,11 @@ test('decodeArray rejects a non-array', async () => {
     for await (const _ of fw.decodeArray(Readable.from(Buffer.from('{"not":"array"}')))) { /* */ }
   });
 });
+
+test('decodeArray enforces maxDepth against deeply nested input', async () => {
+  const inner = '['.repeat(300) + '0' + ']'.repeat(300);
+  const payload = Buffer.from('[' + inner + ']');
+  await assert.rejects(async () => {
+    for await (const _ of fw.decodeArray(Readable.from(payload), { maxDepth: 200 })) { /* */ }
+  }, /nesting depth/);
+});
