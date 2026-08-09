@@ -157,4 +157,25 @@ async function* jsonDecodeArray(readable, { maxDepth = 200 } = {}) {
   throw new Error('stream ended before the JSON array was closed');
 }
 
-module.exports = { encode, decode, encodeTo, decodeFrom, encodeArray, decodeArray };
+const MEDIA_TYPES = {
+  json: 'application/json',
+  xml: 'application/xml',
+  msgpack: 'application/msgpack',
+};
+
+// One-line HTTP adapter: stream a large collection to an HTTP response (Node
+// `http`/Express/Fastify — `res` is a Writable). Sets Content-Type from the
+// format, streams with flat memory + backpressure, and ends the response.
+// Returns the number of elements written.
+//   app.get('/rows', async (req, res) => { await fw.sendArray(res, rows, { format: 'msgpack' }); });
+async function sendArray(res, items, opts = {}) {
+  const format = opts.format || 'json';
+  if (typeof res.setHeader === 'function' && !res.headersSent) {
+    res.setHeader('Content-Type', MEDIA_TYPES[format] || 'application/octet-stream');
+  }
+  const count = await encodeArray(items, res, opts);
+  if (typeof res.end === 'function') res.end();
+  return count;
+}
+
+module.exports = { encode, decode, encodeTo, decodeFrom, encodeArray, decodeArray, sendArray, MEDIA_TYPES };

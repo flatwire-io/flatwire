@@ -21,6 +21,9 @@ All notable changes to flatwire are documented here. The format follows
   `drain` contract so a slow consumer throttles the producer (not the socket
   buffer), plus `AbortSignal` cancellation and error-propagation. See
   [docs/BACKPRESSURE.md](docs/BACKPRESSURE.md).
+- **Framework adapters** — one-line streaming responses: Python
+  `iter_encoded_array` for FastAPI/Starlette and Node `sendArray` for
+  Express/Fastify/http. See [docs/ADAPTERS.md](docs/ADAPTERS.md).
 - **Protocol playground** ([web/playground.html](web/playground.html)) — encode
   in all three formats live with a size comparison, and inspect any MessagePack
   byte stream field-by-field, in the browser.

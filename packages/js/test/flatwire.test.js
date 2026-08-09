@@ -131,6 +131,28 @@ test('unknown format throws', async () => {
   await assert.rejects(async () => { await fw.encodeArray([1], w, { format: 'yaml' }); });
 });
 
+test('sendArray sets Content-Type and streams to an HTTP-like response', async () => {
+  const { Writable } = require('node:stream');
+  const chunks = [];
+  const headers = {};
+  let ended = false;
+  // A minimal ServerResponse-like writable.
+  const res = new Writable({ write(c, _e, cb) { chunks.push(Buffer.from(c)); cb(); } });
+  res.headersSent = false;
+  res.setHeader = (k, v) => { headers[k] = v; };
+  res.end = () => { ended = true; };
+
+  const items = [{ id: 1 }, { id: 2 }, { id: 3 }];
+  const n = await fw.sendArray(res, items, { format: 'msgpack' });
+  assert.strictEqual(n, 3);
+  assert.strictEqual(headers['Content-Type'], 'application/msgpack');
+  assert.ok(ended, 'response should be ended');
+  // The written bytes decode back to the items.
+  const out = [];
+  for await (const el of fw.decodeArray(Readable.from(Buffer.concat(chunks)), { format: 'msgpack' })) out.push(el);
+  assert.deepStrictEqual(out, items);
+});
+
 test('encodeArray honors writer backpressure (slow consumer throttles producer)', async () => {
   // A writable with a tiny highWaterMark that drains slowly. If flatwire respects
   // backpressure, the producer pauses and the number of in-flight (unacked)

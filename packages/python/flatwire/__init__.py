@@ -19,6 +19,7 @@ library. ``format="xml"`` streams a typed, round-trippable XML representation;
 representation for internal traffic. All three keep memory flat.
 """
 
+from .adapters import iter_encoded_array
 from .core import (
     decode,
     decode_array,
@@ -43,6 +44,7 @@ __all__ = [
     "decode_array",
     "encode_checked_array",
     "decode_checked_array",
+    "iter_encoded_array",
     "StreamError",
     "TruncatedStream",
 ]
