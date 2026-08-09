@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>FlatWire</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Parag Sawant</Authors>
+    <Description>Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element.</Description>
+    <Packagelicense>Apache-2.0</Packagelicense>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/flatwire-io/flatwire</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/flatwire-io/flatwire</RepositoryUrl>
+    <PackageTags>json;serialization;streaming;memory;performance</PackageTags>
+  </PropertyGroup>
+
+</Project>

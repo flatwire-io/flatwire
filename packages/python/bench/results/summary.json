@@ -1,0 +1,32 @@
+[
+  {
+    "elements": 1000,
+    "payload_bytes": 251281,
+    "encode_peak_whole": 502664,
+    "encode_peak_stream": 1486,
+    "encode_reduction": 0.997,
+    "decode_peak_whole": 755397,
+    "decode_peak_stream": 198437,
+    "decode_reduction": 0.737
+  },
+  {
+    "elements": 10000,
+    "payload_bytes": 2532781,
+    "encode_peak_whole": 5065636,
+    "encode_peak_stream": 1421,
+    "encode_reduction": 1.0,
+    "decode_peak_whole": 7613873,
+    "decode_peak_stream": 198572,
+    "decode_reduction": 0.974
+  },
+  {
+    "elements": 50000,
+    "payload_bytes": 12752781,
+    "encode_peak_whole": 25505636,
+    "encode_peak_stream": 1416,
+    "encode_reduction": 1.0,
+    "decode_peak_whole": 38313073,
+    "decode_peak_stream": 198572,
+    "decode_reduction": 0.995
+  }
+]

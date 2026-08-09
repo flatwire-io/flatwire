@@ -1,0 +1,22 @@
+{
+  "name": "flatwire",
+  "version": "0.1.0",
+  "description": "Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "type": "commonjs",
+  "files": ["index.js", "index.d.ts", "README.md"],
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["json", "serialization", "streaming", "memory", "performance"],
+  "author": "Parag Sawant",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flatwire-io/flatwire.git",
+    "directory": "packages/js"
+  },
+  "homepage": "https://github.com/flatwire-io/flatwire",
+  "engines": { "node": ">=18" }
+}

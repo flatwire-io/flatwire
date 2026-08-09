@@ -1,0 +1,13 @@
+[package]
+name = "flatwire"
+version = "0.1.0"
+edition = "2021"
+description = "Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element."
+license = "Apache-2.0"
+repository = "https://github.com/flatwire-io/flatwire"
+keywords = ["json", "serialization", "streaming", "performance"]
+categories = ["encoding"]
+
+[dependencies]
+serde = "1"
+serde_json = "1"
