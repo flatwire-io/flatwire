@@ -118,6 +118,13 @@ Each package's README has the full per-language signatures.
 - flatwire is a **thin, correct-by-default streaming layer**, not a new serializer engine — it builds on each ecosystem's best-supported streaming primitives (`Utf8JsonWriter`/`DeserializeAsyncEnumerable`, Jackson streaming, `encoding/json` decoder, `serde_json` readers).
 - It does not rewrite your domain models, HTTP framework, or transport.
 
+## Docs & benchmarks
+
+- **[Patterns & migration guide](docs/GUIDE.md)** — when to use flatwire, correct usage per ecosystem, anti-patterns, and how to migrate call sites.
+- **[Python benchmark report](packages/python/bench/REPORT.md)** — honest head-to-head vs `json` / `orjson` / `msgspec` (memory *and* time).
+- **[Node benchmark report](packages/js/bench/REPORT.md)** — child-process peak-RSS methodology; streaming decode from disk.
+- A CI job runs a **memory regression guard** (`packages/python/bench/guard.py`) on every build, failing if streaming stops being flat.
+
 ## License
 
 Apache-2.0 — see [LICENSE](LICENSE). © 2026 The flatwire authors.

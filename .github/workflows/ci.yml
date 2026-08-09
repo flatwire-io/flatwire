@@ -21,6 +21,8 @@ jobs:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
       - run: pytest -q
+      - name: perf regression guard (streaming memory stays flat)
+        run: python bench/guard.py
 
   node:
     runs-on: ubuntu-latest
