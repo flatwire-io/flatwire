@@ -43,7 +43,7 @@ The technique isn't the differentiator — every ecosystem ships a streaming pri
 
 - **Round-trip:** every corpus case decodes back to what was encoded, in **all six languages**.
 - **MessagePack byte-identity:** every value encodes to the **exact same bytes** in Python, Node, .NET, Rust, Go, and Java — canonical integer widths, IEEE-754 floats, sorted map keys. A claim no other polyglot serializer makes.
-- **JSON / XML:** round-trip-guaranteed; being text formats, byte representation legitimately varies across ecosystems (escaping, whitespace, float text) — and the matrix says so honestly rather than overclaiming.
+- **JSON / XML:** round-trip-guaranteed; being text formats, byte representation legitimately varies across ecosystems (escaping, whitespace, float text) — and the matrix reflects that rather than overclaiming.
 
 The suite has already caught and fixed real cross-language bugs. See [`conformance/`](conformance/).
 
@@ -59,7 +59,7 @@ From `packages/python/bench/benchmark.py`, run on this machine (peak transient m
 
 Encode memory is **flat** — ~1.4 KB whether the payload is 0.25 MB or 12.7 MB — while the materialized path grows linearly. Decode streaming holds a fixed ~200 KB working buffer regardless of size (a **99.5%** reduction at 50k records). This is exactly the goal: **memory flat, time linear.**
 
-### Honest comparison vs orjson / msgspec / stdlib
+### Comparison vs orjson / msgspec / stdlib
 
 flatwire is **not** a faster serializer than the optimized C extensions — it trades CPU time for flat memory. A full head-to-head (peak memory *and* time, `json` vs `orjson` vs `msgspec` vs flatwire, across sizes and shapes) lives in **[`packages/python/bench/REPORT.md`](packages/python/bench/REPORT.md)**. The one-line summary, measured on this machine, for processing a 12 MB array element-by-element and discarding each element:
 
@@ -147,7 +147,7 @@ flatwire started as a thin streaming layer over each ecosystem's JSON primitives
 ## Docs & benchmarks
 
 - **[Patterns & migration guide](docs/GUIDE.md)** — when to use flatwire, correct usage per ecosystem, anti-patterns, and how to migrate call sites.
-- **[Cross-language benchmark summary](docs/BENCHMARKS.md)** — all six languages on one page, with the honest memory-metric caveats.
+- **[Cross-language benchmark summary](docs/BENCHMARKS.md)** — all six languages on one page, with the memory-metric caveats.
 - **[Live benchmark dashboard](https://flatwire-io.github.io/flatwire/)** — an interactive visualization of the measured numbers (source in [`web/`](web/)).
 - **[Protocol playground](https://flatwire-io.github.io/flatwire/playground.html)** — encode JSON to flatwire's canonical MessagePack and inspect any byte stream field-by-field, in the browser.
 - **[Multi-format design](docs/FORMATS.md)** — the JSON → XML → binary roadmap.

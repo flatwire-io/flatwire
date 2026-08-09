@@ -3,8 +3,7 @@
 flatwire's real differentiator is **one identical streaming API across six
 languages**. This suite turns that claim from marketing into a **proven,
 CI-enforced spec**: every language runs the same shared corpus, and an aggregator
-publishes a matrix of exactly what holds across all six — and, honestly, what
-does not.
+publishes a matrix of exactly what holds across all six — and what does not.
 
 ## What is tested
 
@@ -26,7 +25,7 @@ same bytes in every language.
 ## The two tiers (why we don't overclaim)
 
 Byte-identical output across six runtimes is achievable for *most* of the data
-model, but **not all of it**, and pretending otherwise would be dishonest:
+model, but **not all of it**, and the matrix reflects that precisely:
 
 - **`identical` tier** — we expect byte-identical encoding across all six
   languages: `null`, booleans, integers (within each format's canonical minimal

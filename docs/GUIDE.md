@@ -2,7 +2,7 @@
 
 This guide covers **when** to reach for flatwire, the **correct usage** per
 ecosystem, the **anti-patterns** to avoid, and how to **migrate** existing call
-sites. It is deliberately honest about where flatwire does *not* help.
+sites. It also states where flatwire does *not* help.
 
 ## When to use flatwire (and when not to)
 
@@ -142,3 +142,4 @@ outright:
 
 flatwire helps when you genuinely must move a large array in one operation. If
 you can make the array smaller at the source, do that first.
+

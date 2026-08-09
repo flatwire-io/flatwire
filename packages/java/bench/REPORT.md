@@ -30,7 +30,7 @@ boolean ok)`.
 **Time at 50k** (s): enc_whole 0.023, enc_stream 0.021, agg_whole 0.021,
 agg_stream 0.023.
 
-## Findings (honest)
+## Findings
 
 - **Encode streaming is a clear, consistent win.** 4.2 MB vs 25.1 MB allocated at
   50k, at the same speed. `encodeArray` drives a Jackson `JsonGenerator` through a
@@ -55,3 +55,4 @@ agg_stream 0.023.
   prevents OOM on very large arrays even though a micro-benchmark's sampled heap
   doesn't always reveal it. If you need the whole `List<Row>` resident, Jackson's
   `readValue` is simplest.
+

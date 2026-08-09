@@ -34,7 +34,7 @@ what the reference `msgpack` `Unpacker` consumes.
   saving comes from structural punctuation). **Numeric-heavy payloads save far
   more** — integers and floats are 1–9 binary bytes instead of their decimal text.
 
-## Interoperability (the honest part)
+## Interoperability
 
 flatwire's MessagePack is **wire-compatible with the reference `msgpack`
 library**, verified both directions in the test suite:

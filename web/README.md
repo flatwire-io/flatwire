@@ -29,6 +29,6 @@ Pushed to GitHub Pages automatically by `.github/workflows/pages.yml` on any
 change under `web/`. Enable Pages once in the repo settings (Source: GitHub
 Actions).
 
-The data is intentionally a static snapshot so the page is honest and
-reproducible; regenerate `data.json` from the benchmark reports rather than
+The data is intentionally a static snapshot so the page is reproducible; regenerate `data.json` from the benchmark reports rather than
 fabricating trends.
+

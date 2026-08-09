@@ -31,7 +31,7 @@ agg_stream 0.206.
 24.3 MB, `AggregateStream` 38.0 MB. Note `AggregateStream`'s cumulative bytes are
 *higher* than whole — see the interpretation below.
 
-## Findings (honest)
+## Findings
 
 - **Encode streaming is a clear win.** Peak heap 2.3 MB vs 32 MB at 50k, and
   cumulative allocation 2.4 MB vs 13 MB. `EncodeArray` writes each element
@@ -56,3 +56,4 @@ agg_stream 0.206.
   resident, `json.Unmarshal` is faster.
 - A typed generic `DecodeArray[T]` (Go generics) is a natural next step to cut
   the per-element `RawMessage` cost.
+
