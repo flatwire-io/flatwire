@@ -105,7 +105,7 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v0.3 — streaming XML in all six languages.** The surface is the streaming array pair plus whole-value convenience, on **JSON and XML** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. Locally tested here: Python, Node, .NET, Rust. Validated in CI (their toolchains live on the runners): Go, Java.
+**v0.4 — three formats, six languages.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, and binary MessagePack** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. Locally tested here: Python, Node, .NET, Rust. Validated in CI (their toolchains live on the runners): Go, Java.
 
 ### Where flatwire is going (goals, not just non-goals)
 

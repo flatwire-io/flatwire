@@ -6,20 +6,24 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.4.0] - 2026-08-08 (Python)
+## [0.4.0] - 2026-08-08
 
 ### Added
-- **Streaming MessagePack (binary) format — `format="msgpack"` (Python).** A
-  compact binary wire for internal service-to-service traffic, streamed as a
-  sequence of concatenated MessagePack values so encode memory stays flat (no
-  count needed up front) and decode reads one value at a time. **Wire-compatible
-  with the reference `msgpack` library** (verified both directions in the test
-  suite). Measured (`bench/MSGPACK.md`): ~11–13% smaller than JSON on a
-  string-heavy shape (more on numeric-heavy data), with encode peak ~650 bytes
-  and decode peak ~194 KB, both flat. Spec-correct for the JSON data model; no ext
-  types/timestamps. This completes the JSON → XML → binary format roadmap in
-  [docs/FORMATS.md](docs/FORMATS.md) for the Python reference; ports to the other
-  languages follow.
+- **Streaming MessagePack (binary) format in all six languages.** A compact
+  binary wire for internal service-to-service traffic, streamed as a sequence of
+  concatenated MessagePack values so encode memory stays flat (no upfront count)
+  and decode reads one value at a time. **Wire-compatible with standard
+  MessagePack** for the JSON data model (verified Python↔JS↔.NET↔Rust interop by
+  byte-identity and cross-decoding). ~11–13% smaller than JSON on string-heavy
+  data, more on numeric. Spec-correct for null/bool/int/float/str/array/map; no
+  ext types/timestamps. Completes the JSON → XML → binary roadmap in
+  [docs/FORMATS.md](docs/FORMATS.md).
+  - Python: `format="msgpack"` on the existing functions.
+  - JS: `encodeArray/decodeArray(..., { format: "msgpack" })`.
+  - .NET: `FlatMsgPack.EncodeArray` / `DecodeArray`.
+  - Rust: `flatwire::msgpack::encode_array` / `decode_array`.
+  - Go: `EncodeArrayMsgPack` / `DecodeArrayMsgPack`.
+  - Java: `FlatMsgPack.encodeArray` / `decodeArray`.
 
 ## [0.3.0] - 2026-08-08
 
