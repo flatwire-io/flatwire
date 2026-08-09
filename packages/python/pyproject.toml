@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flatwire"
-version = "0.10.0"
+version = "1.0.0"
 description = "Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -12,7 +12,7 @@ license = "Apache-2.0"
 authors = [{ name = "The flatwire authors" }]
 keywords = ["json", "serialization", "streaming", "memory", "performance"]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
   "Topic :: Software Development :: Libraries :: Python Modules",

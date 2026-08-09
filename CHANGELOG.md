@@ -6,6 +6,43 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-09
+
+First stable release. The API is considered stable and the project follows
+[Semantic Versioning](https://semver.org/) from this point on: no breaking
+changes to the public surface within the 1.x line.
+
+This release is a stability and maturity milestone, not a feature dump —
+everything below already shipped across the 0.x series and is now frozen as the
+1.0 contract:
+
+### Highlights
+- **One tiny, identical streaming API in six languages** — Python, Node, .NET,
+  Rust, Go, and Java. `encode_array` / `decode_array` (plus whole-value
+  `encode` / `decode`) keep peak memory bounded by the largest single element,
+  not the size of the collection.
+- **Four wire formats behind one `format` selector** — JSON, XML, binary
+  MessagePack, and binary CBOR. The two binary formats are **byte-identical
+  across all six runtimes** (canonical integers, sorted map keys, IEEE-754
+  floats), proven by a cross-language conformance suite that runs on every push.
+- **Partial-stream failure semantics (checked streams)** in all six languages —
+  a consumer can tell clean completion, an in-band producer error after N rows,
+  and truncation apart, over a plain-JSON envelope that interoperates across
+  languages.
+- **Production hardening** — writer backpressure and cancellation (Node),
+  framework adapters for all six languages (FastAPI/Starlette, Express/Fastify,
+  ASP.NET, net/http, Servlet/Spring), a nesting-depth guard on the hand-written
+  decoders, and measured latency/concurrency benchmarks.
+- **Tooling** — a `flatwire` command-line tool (`cat` / `convert` / `stats`) that
+  processes any-size files in constant memory, a React benchmark dashboard, and a
+  browser protocol playground.
+- **Docs** — per-language READMEs, a multi-format design note, transport and
+  failure-semantics guides, framework-adapter recipes, and copy-paste
+  architecture patterns (cloud storage → database, Kafka/NATS, LLM token streams).
+
+### Changed
+- Python package classifier moved from Beta to Production/Stable.
+
 ## [0.10.0] - 2026-08-09
 
 ### Added
