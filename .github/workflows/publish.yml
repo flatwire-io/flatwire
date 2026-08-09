@@ -37,8 +37,6 @@ jobs:
   pypi:
     if: ${{ inputs.target == 'pypi' }}
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write   # PyPI Trusted Publishing (OIDC)
     defaults:
       run:
         working-directory: packages/python
@@ -52,6 +50,7 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: packages/python/dist
+          password: ${{ secrets.PYPI_API_TOKEN }}
 
   nuget:
     if: ${{ inputs.target == 'nuget' }}
