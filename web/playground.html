@@ -17,43 +17,55 @@
     a { color: var(--accent); }
     .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 20px 80px; }
     h1 { font-size: 2rem; margin: 0 0 4px; letter-spacing: -0.5px; }
-    .lede { color: var(--muted); margin: 0 0 6px; max-width: 720px; }
+    .lede { color: var(--muted); margin: 0 0 6px; max-width: 760px; }
     .nav { margin: 12px 0 20px; display: flex; gap: 8px; }
     .nav a { background: var(--panel); border: 1px solid var(--border); border-radius: 999px;
       padding: 4px 12px; font-size: 0.82rem; text-decoration: none; color: var(--muted); }
     .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
       padding: 18px 20px; margin: 18px 0; }
-    .card h2 { margin: 0 0 12px; font-size: 1.1rem; }
+    .card h2 { margin: 0 0 4px; font-size: 1.1rem; }
+    .card .sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 12px; }
     textarea, select, input { background: #0d1117; color: var(--text); border: 1px solid var(--border);
       border-radius: 8px; padding: 8px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
-    textarea { width: 100%; min-height: 90px; resize: vertical; }
+    textarea { width: 100%; min-height: 84px; resize: vertical; }
     .controls { display: flex; gap: 10px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
     button { background: #238636; color: #fff; border: 1px solid #2ea043; border-radius: 8px;
       padding: 8px 16px; cursor: pointer; font-size: 0.88rem; }
     button.secondary { background: var(--panel); color: var(--text); border-color: var(--border); }
     .err { color: #f85149; font-size: 0.85rem; margin-top: 8px; white-space: pre-wrap; }
-    .out { margin-top: 12px; }
     .hex { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem;
       line-height: 1.7; word-break: break-all; }
     .hex .b { padding: 1px 2px; border-radius: 3px; cursor: default; }
     .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); margin: 8px 0; }
     .legend span { display: inline-flex; align-items: center; gap: 5px; }
     .sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
-    table.tree { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
-    table.tree td { padding: 4px 8px; border-bottom: 1px solid #21262d; vertical-align: top; }
-    table.tree td.range { color: var(--muted); font-family: ui-monospace, monospace; white-space: nowrap; width: 90px; }
-    table.tree td.tag { font-family: ui-monospace, monospace; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { padding: 6px 10px; border-bottom: 1px solid #21262d; text-align: left; }
+    th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: .04em; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; }
+    table.tree td { font-family: ui-monospace, monospace; vertical-align: top; }
+    table.tree td.range { color: var(--muted); white-space: nowrap; width: 90px; }
     .muted { color: var(--muted); }
     .stat { color: var(--muted); font-size: 0.82rem; margin-top: 8px; }
-    code { background: #0d1117; border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; font-size: 0.82rem; }
+    code, pre { background: #0d1117; border: 1px solid var(--border); border-radius: 5px; font-size: 0.82rem;
+      font-family: ui-monospace, monospace; }
+    code { padding: 1px 5px; }
+    pre { padding: 10px 12px; overflow-x: auto; margin: 8px 0 0; white-space: pre-wrap; word-break: break-word; }
+    .tabs { display: flex; gap: 6px; margin: 12px 0 8px; }
+    .tabs button { background: var(--panel); color: var(--muted); border: 1px solid var(--border);
+      border-radius: 8px 8px 0 0; padding: 6px 14px; }
+    .tabs button.active { color: #fff; border-color: var(--accent); background: #132a4d; }
+    .win { color: var(--green); font-weight: 600; }
+    .bar { height: 8px; border-radius: 4px; background: var(--accent); display: inline-block; vertical-align: middle; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>flatwire protocol playground</h1>
-    <p class="lede">Encode JSON to flatwire's canonical <b>MessagePack</b> wire, or paste raw bytes to inspect them
-      field-by-field — type tags, frame boundaries, and decoded values. Runs entirely in your browser; the codec is
-      byte-identical to what flatwire emits in all six languages.</p>
+    <p class="lede">Type a JSON array of elements and watch flatwire encode it in <b>all three formats</b>
+      (JSON, XML, MessagePack) live — sizes compared, bytes annotated, round-trip verified, and a field-by-field
+      inspector. Everything is computed in your browser with a codec that's <b>byte-identical to flatwire's
+      six-language output</b>.</p>
     <div class="nav">
       <a href="./index.html">← Benchmarks</a>
       <a href="https://github.com/flatwire-io/flatwire">GitHub</a>
@@ -61,125 +73,165 @@
     </div>
 
     <div class="card">
-      <h2>Encode → bytes</h2>
-      <p class="muted" style="margin:0 0 8px;font-size:.85rem">A JSON array of elements (each element is one streamed value).</p>
-      <textarea id="jsonIn">[{"id":1,"name":"row-1","ok":true,"tags":["a","b"]},42,-7,3.5,"unïcode ✓",null]</textarea>
-      <div class="controls">
-        <button onclick="doEncode()">Encode to MessagePack</button>
-        <span class="muted" id="encStat"></span>
-      </div>
-      <div id="encErr" class="err"></div>
-      <div id="encOut" class="out"></div>
+      <h2>Input</h2>
+      <p class="sub">A JSON array — each element is one streamed value. Edit and it recomputes instantly.</p>
+      <textarea id="jsonIn" oninput="recompute()">[{"id":1,"name":"row-1","ok":true,"tags":["a","b"],"score":3.5},{"id":2,"name":"row-2","ok":false},42,-7,"unïcode ✓",null]</textarea>
+      <div id="inErr" class="err"></div>
     </div>
 
     <div class="card">
-      <h2>Inspect ← bytes</h2>
-      <p class="muted" style="margin:0 0 8px;font-size:.85rem">Paste a MessagePack byte stream as hex (<code>81 a2 69 64 01</code>) or base64.</p>
+      <h2>Every function, computed live</h2>
+      <p class="sub">flatwire's <code>encode_array</code> in each format, then <code>decode_array</code> back — with a size comparison.</p>
+      <table id="sizeTable"></table>
+      <div id="sizeBars" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Encoded output &amp; inspector</h2>
+      <div class="tabs" id="fmtTabs">
+        <button data-fmt="json" class="active" onclick="selectFmt('json')">JSON</button>
+        <button data-fmt="xml" onclick="selectFmt('xml')">XML</button>
+        <button data-fmt="msgpack" onclick="selectFmt('msgpack')">MessagePack</button>
+      </div>
+      <div id="fmtOut"></div>
+    </div>
+
+    <div class="card">
+      <h2>Inspect arbitrary bytes</h2>
+      <p class="sub">Paste a MessagePack byte stream as hex (<code>81 a2 69 64 2a</code>) or base64 to decode it field-by-field.</p>
       <textarea id="bytesIn">81 a2 69 64 2a</textarea>
       <div class="controls">
-        <select id="inputFmt">
-          <option value="hex">hex</option>
-          <option value="base64">base64</option>
-        </select>
+        <select id="inputFmt"><option value="hex">hex</option><option value="base64">base64</option></select>
         <button onclick="doInspect()">Inspect</button>
-        <button class="secondary" onclick="fromEncode()">↑ use encoded bytes</button>
+        <button class="secondary" onclick="useEncoded()">↑ use encoded MessagePack</button>
       </div>
       <div id="inspErr" class="err"></div>
-      <div id="inspOut" class="out"></div>
+      <div id="inspOut"></div>
     </div>
   </div>
 
   <script src="./playground.js"></script>
   <script>
     const pg = flatwirePlayground;
-    const TYPE_COLOR = { int: 'var(--int)', str: 'var(--str)', float: 'var(--float)',
-      bool: 'var(--bool)', null: 'var(--null)', array: 'var(--cont)', map: 'var(--cont)' };
-    let lastEncoded = null;
+    const TYPE_COLOR = { int:'var(--int)', str:'var(--str)', float:'var(--float)', bool:'var(--bool)',
+      null:'var(--null)', array:'var(--cont)', map:'var(--cont)' };
+    let items = [];
+    let computed = null;
+    let selectedFmt = 'json';
 
     function legend() {
       const kinds = [['int','int'],['str','string'],['float','float'],['bool','bool'],['null','null'],['map','map/array']];
       return '<div class="legend">' + kinds.map(([k,l]) =>
         `<span><span class="sw" style="background:${TYPE_COLOR[k]}"></span>${l}</span>`).join('') + '</div>';
     }
+    function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function bigintReplacer(_k,v){ return typeof v==='bigint'?v.toString():v; }
+    function human(n){ if(n<1024) return n+' B'; if(n<1048576) return (n/1024).toFixed(1)+' KB'; return (n/1048576).toFixed(1)+' MB'; }
 
-    function renderHex(bytes, tokens) {
-      // color each byte by the token that starts at it (header byte) or contains it.
+    function renderHexFromTokens(bytes, tokens) {
       const owner = new Array(bytes.length).fill(null);
-      // paint container/scalar header ranges
-      for (const t of tokens) for (let i = t.start; i < t.end; i++) owner[i] = t;
-      let html = '';
-      for (let i = 0; i < bytes.length; i++) {
-        const t = owner[i];
-        const color = t ? TYPE_COLOR[t.type] : 'var(--muted)';
-        const hx = bytes[i].toString(16).padStart(2, '0');
-        const title = t ? `${t.label} (bytes ${t.start}–${t.end - 1})` : '';
-        html += `<span class="b" style="color:${color}" title="${title.replace(/"/g,'&quot;')}">${hx}</span> `;
+      for (const t of tokens) for (let i=t.start;i<t.end;i++) owner[i]=t;
+      let html='';
+      for (let i=0;i<bytes.length;i++){
+        const t=owner[i]; const color=t?TYPE_COLOR[t.type]:'var(--muted)';
+        const hx=bytes[i].toString(16).padStart(2,'0');
+        const title=t?`${t.label} (bytes ${t.start}-${t.end-1})`:'';
+        html+=`<span class="b" style="color:${color}" title="${title.replace(/"/g,'&quot;')}">${hx}</span> `;
       }
       return `<div class="hex">${html}</div>`;
     }
-
-    function renderTree(tokens) {
-      let rows = '';
-      for (const t of tokens) {
-        const indent = '&nbsp;&nbsp;'.repeat(t.depth);
-        const color = TYPE_COLOR[t.type];
-        rows += `<tr><td class="range">${t.start}–${t.end - 1}</td>` +
-          `<td class="tag">${indent}<span style="color:${color}">${t.label}</span></td></tr>`;
+    function renderTree(tokens){
+      let rows='';
+      for(const t of tokens){
+        const indent='&nbsp;&nbsp;'.repeat(t.depth);
+        rows+=`<tr><td class="range">${t.start}-${t.end-1}</td><td><span style="color:${TYPE_COLOR[t.type]}">${indent}${t.label}</span></td></tr>`;
       }
       return `<table class="tree"><tbody>${rows}</tbody></table>`;
     }
 
-    function doEncode() {
-      const errEl = document.getElementById('encErr');
-      const outEl = document.getElementById('encOut');
-      errEl.textContent = ''; outEl.innerHTML = '';
-      let items;
+    function recompute() {
+      const errEl = document.getElementById('inErr');
+      errEl.textContent = '';
       try { items = JSON.parse(document.getElementById('jsonIn').value); }
       catch (e) { errEl.textContent = 'Invalid JSON: ' + e.message; return; }
-      if (!Array.isArray(items)) { errEl.textContent = 'Top-level value must be a JSON array of elements.'; return; }
-      try {
-        const bytes = pg.encodeArrayMsgpack(items);
-        lastEncoded = bytes;
+      if (!Array.isArray(items)) { errEl.textContent = 'Top-level value must be a JSON array.'; return; }
+      try { computed = pg.computeAll(items); }
+      catch (e) { errEl.textContent = e.message; return; }
+      renderSizeTable();
+      renderFmt();
+    }
+
+    function renderSizeTable() {
+      const j = computed.json.size, x = computed.xml.size, m = computed.msgpack.size;
+      const base = j;
+      const rows = [
+        ['JSON', computed.json, '—'],
+        ['XML', computed.xml, pct(x, base)],
+        ['MessagePack', computed.msgpack, pct(m, base)],
+      ];
+      let html = '<thead><tr><th>format</th><th>bytes</th><th>vs JSON</th><th>round-trips</th></tr></thead><tbody>';
+      for (const [name, r, delta] of rows) {
+        html += `<tr><td>${name}</td><td class="num">${r.size}</td><td class="num">${delta}</td>` +
+          `<td>${r.roundtrip ? '<span class="win">✓</span>' : '<span style="color:#f85149">✗</span>'}</td></tr>`;
+      }
+      html += '</tbody>';
+      document.getElementById('sizeTable').innerHTML = html;
+      const max = Math.max(j, x, m) || 1;
+      document.getElementById('sizeBars').innerHTML = [['JSON',j],['XML',x],['MessagePack',m]].map(([n,s]) =>
+        `<div style="display:flex;align-items:center;gap:10px;margin:5px 0"><span style="width:96px" class="muted">${n}</span>` +
+        `<span class="bar" style="width:${Math.max(2,(s/max)*70)}%;background:${n==='MessagePack'?'var(--green)':'var(--accent)'}"></span>` +
+        `<span class="muted" style="font-size:.8rem">${human(s)}</span></div>`).join('');
+    }
+    function pct(v, base) {
+      if (v === base) return '—';
+      const d = Math.round((1 - v / base) * 100);
+      return d > 0 ? `\u2212${d}% smaller` : `+${-d}% larger`;
+    }
+
+    function selectFmt(f){ selectedFmt=f; for(const b of document.querySelectorAll('#fmtTabs button')) b.classList.toggle('active', b.dataset.fmt===f); renderFmt(); }
+    function renderFmt() {
+      if (!computed) return;
+      const r = computed[selectedFmt];
+      const out = document.getElementById('fmtOut');
+      const bytes = r.bytes;
+      if (selectedFmt === 'msgpack') {
         const insp = pg.inspectMsgpack(bytes);
-        document.getElementById('encStat').textContent = `${items.length} elements → ${bytes.length} bytes`;
-        outEl.innerHTML = legend() + renderHex(bytes, insp.tokens) +
+        out.innerHTML = `<div class="stat">${bytes.length} bytes, ${insp.values.length} top-level value(s)</div>` +
+          legend() + renderHexFromTokens(bytes, insp.tokens) + renderTree(insp.tokens) +
+          `<div class="stat">decoded:</div><pre>${escapeHtml(JSON.stringify(insp.values, bigintReplacer, 2))}</pre>` +
           `<div class="stat">base64: <code>${btoa(String.fromCharCode(...bytes))}</code></div>`;
-      } catch (e) { errEl.textContent = e.message; }
+      } else {
+        const text = new TextDecoder().decode(bytes);
+        const decoded = selectedFmt === 'json' ? pg.decodeArrayJson(bytes) : pg.decodeArrayXml(bytes);
+        out.innerHTML = `<div class="stat">${bytes.length} bytes</div><pre>${escapeHtml(text)}</pre>` +
+          `<div class="stat">decoded back:</div><pre>${escapeHtml(JSON.stringify(decoded, null, 2))}</pre>`;
+      }
     }
 
     function doInspect() {
-      const errEl = document.getElementById('inspErr');
-      const outEl = document.getElementById('inspOut');
-      errEl.textContent = ''; outEl.innerHTML = '';
-      const fmt = document.getElementById('inputFmt').value;
+      const errEl=document.getElementById('inspErr'); const outEl=document.getElementById('inspOut');
+      errEl.textContent=''; outEl.innerHTML='';
+      const fmt=document.getElementById('inputFmt').value;
       let bytes;
-      try {
-        bytes = fmt === 'hex' ? pg.hexToBytes(document.getElementById('bytesIn').value)
-                              : pg.base64ToBytes(document.getElementById('bytesIn').value);
-      } catch (e) { errEl.textContent = 'Could not parse bytes: ' + e.message; return; }
+      try { bytes = fmt==='hex' ? pg.hexToBytes(document.getElementById('bytesIn').value) : pg.base64ToBytes(document.getElementById('bytesIn').value); }
+      catch(e){ errEl.textContent='Could not parse bytes: '+e.message; return; }
       try {
         const insp = pg.inspectMsgpack(bytes);
-        outEl.innerHTML = legend() + renderHex(bytes, insp.tokens) +
-          `<div class="stat">${insp.values.length} top-level value(s), ${bytes.length} bytes</div>` +
-          renderTree(insp.tokens) +
-          `<div class="stat">decoded: <code>${escapeHtml(JSON.stringify(insp.values, bigintReplacer))}</code></div>`;
-      } catch (e) { errEl.textContent = e.message; }
+        outEl.innerHTML = legend() + renderHexFromTokens(bytes, insp.tokens) +
+          `<div class="stat">${insp.values.length} value(s), ${bytes.length} bytes</div>` + renderTree(insp.tokens) +
+          `<div class="stat">decoded:</div><pre>${escapeHtml(JSON.stringify(insp.values, bigintReplacer, 2))}</pre>`;
+      } catch(e){ errEl.textContent=e.message; }
     }
-
-    function fromEncode() {
-      if (!lastEncoded) { doEncode(); }
-      if (lastEncoded) {
-        document.getElementById('inputFmt').value = 'hex';
-        document.getElementById('bytesIn').value = pg.bytesToHex(lastEncoded);
+    function useEncoded() {
+      if (!computed) recompute();
+      if (computed) {
+        document.getElementById('inputFmt').value='hex';
+        document.getElementById('bytesIn').value=pg.bytesToHex(computed.msgpack.bytes);
         doInspect();
       }
     }
 
-    function bigintReplacer(_k, v) { return typeof v === 'bigint' ? v.toString() : v; }
-    function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    // Run once on load so the page shows something live.
-    doEncode();
+    recompute();
     doInspect();
   </script>
 </body>

@@ -66,6 +66,93 @@ const flatwirePlayground = (() => {
     return new Uint8Array(out);
   }
 
+  // ---- JSON (matches flatwire encode_array: compact single array) ----------
+  function encodeArrayJson(items) {
+    const parts = items.map((it) => JSON.stringify(it));
+    return new TextEncoder().encode('[' + parts.join(',') + ']');
+  }
+  function decodeArrayJson(bytes) {
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+
+  // ---- XML (typed, matches flatwire xml.js convention) ---------------------
+  function xmlType(v) {
+    if (v === null) return 'null';
+    if (typeof v === 'boolean') return 'bool';
+    if (typeof v === 'number') return Number.isSafeInteger(v) ? 'int' : 'float';
+    if (typeof v === 'string') return 'str';
+    if (Array.isArray(v)) return 'array';
+    if (typeof v === 'object') return 'object';
+    throw new Error('unsupported type ' + typeof v);
+  }
+  function xmlEsc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function xmlAttrEsc(s) { return xmlEsc(s).replace(/"/g, '&quot;'); }
+  function xmlWriteValue(v, tag, keyAttr, parts) {
+    const t = xmlType(v);
+    const attrs = ` type="${t}"${keyAttr}`;
+    if (t === 'null') { parts.push(`<${tag}${attrs}/>`); }
+    else if (t === 'object') {
+      parts.push(`<${tag}${attrs}>`);
+      for (const [k, val] of Object.entries(v)) xmlWriteValue(val, 'f', ` k="${xmlAttrEsc(k)}"`, parts);
+      parts.push(`</${tag}>`);
+    } else if (t === 'array') {
+      parts.push(`<${tag}${attrs}>`);
+      for (const e of v) xmlWriteValue(e, 'e', '', parts);
+      parts.push(`</${tag}>`);
+    } else {
+      const text = t === 'bool' ? (v ? 'true' : 'false') : String(v);
+      parts.push(`<${tag}${attrs}>${xmlEsc(text)}</${tag}>`);
+    }
+  }
+  function encodeArrayXml(items, root = 'items') {
+    const parts = [`<?xml version="1.0" encoding="UTF-8"?><${root}>`];
+    for (const it of items) xmlWriteValue(it, 'item', '', parts);
+    parts.push(`</${root}>`);
+    return new TextEncoder().encode(parts.join(''));
+  }
+  function decodeArrayXml(bytes, itemTag = 'item') {
+    const doc = new DOMParser().parseFromString(new TextDecoder().decode(bytes), 'application/xml');
+    const err = doc.querySelector('parsererror');
+    if (err) throw new Error('invalid XML: ' + err.textContent.trim());
+    const root = doc.documentElement;
+    const out = [];
+    for (const el of root.children) if (el.tagName === itemTag) out.push(xmlParseEl(el));
+    return out;
+  }
+  function xmlParseEl(el) {
+    const t = el.getAttribute('type');
+    if (t === 'null') return null;
+    if (t === 'bool') return (el.textContent || '').trim() === 'true';
+    if (t === 'int') return parseInt(el.textContent, 10);
+    if (t === 'float') return parseFloat(el.textContent);
+    if (t === 'str') return el.textContent || '';
+    if (t === 'object') { const o = {}; for (const c of el.children) o[c.getAttribute('k')] = xmlParseEl(c); return o; }
+    if (t === 'array') { const a = []; for (const c of el.children) a.push(xmlParseEl(c)); return a; }
+    throw new Error('unknown xml type ' + t);
+  }
+
+  // ---- compute everything for a set of items -------------------------------
+  function canonical(v) {
+    // Stable, order-insensitive, bigint-safe stringify for round-trip checks
+    // (canonical msgpack sorts map keys, so comparison must ignore key order).
+    if (typeof v === 'bigint') return v.toString();
+    if (v === null || typeof v !== 'object') return JSON.stringify(v);
+    if (Array.isArray(v)) return '[' + v.map(canonical).join(',') + ']';
+    return '{' + Object.keys(v).sort().map((k) => JSON.stringify(k) + ':' + canonical(v[k])).join(',') + '}';
+  }
+  function computeAll(items) {
+    const j = encodeArrayJson(items);
+    const x = encodeArrayXml(items);
+    const m = encodeArrayMsgpack(items);
+    const want = canonical(items);
+    const rt = (dec) => { try { return canonical(dec) === want; } catch { return false; } };
+    return {
+      json: { bytes: j, size: j.length, roundtrip: rt(decodeArrayJson(j)) },
+      xml: { bytes: x, size: x.length, roundtrip: rt(decodeArrayXml(x)) },
+      msgpack: { bytes: m, size: m.length, roundtrip: rt(inspectMsgpack(m).values) },
+    };
+  }
+
   // ---- MessagePack decode with byte annotations ----------------------------
   // Returns { values: [...], tokens: [{start,end,type,label,depth}] }
   function inspectMsgpack(bytes) {
@@ -150,7 +237,12 @@ const flatwirePlayground = (() => {
     return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join(' ');
   }
 
-  return { encodeArrayMsgpack, inspectMsgpack, hexToBytes, base64ToBytes, bytesToHex };
+  return {
+    encodeArrayJson, decodeArrayJson,
+    encodeArrayXml, decodeArrayXml,
+    encodeArrayMsgpack, inspectMsgpack,
+    computeAll, hexToBytes, base64ToBytes, bytesToHex,
+  };
 })();
 
 if (typeof module !== 'undefined') module.exports = flatwirePlayground;
