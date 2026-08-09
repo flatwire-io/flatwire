@@ -28,9 +28,21 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
-      - run: npm publish --provenance --access public
+      - name: publish (skip if this version already exists)
+        run: |
+          if npm publish --provenance --access public; then
+            echo "published"
+          else
+            code=$?
+            # 403 over an existing version is not a failure for a re-run.
+            if npm view flatwire@$(node -p "require('./package.json').version") version >/dev/null 2>&1; then
+              echo "version already published; skipping"
+            else
+              exit $code
+            fi
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
