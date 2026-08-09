@@ -117,7 +117,7 @@ Every case must decode back to what was encoded, in every language. `✓` = roun
 | object_small | ⚠️ differs | — | Python,Node=f6eb8e5a; .NET=5ec0f48e; Rust,Go=e7b825da; Java=fcb16c1c |
 | arrays_nested | ⚠️ differs | — | Python,Node=19b60aa3; .NET=b7f8eca4; Rust,Go,Java=fc13279b |
 | deep_nesting | ⚠️ differs | — | Python,Node,Rust,Go,Java=446311bb; .NET=bcd83305 |
-| records_homogeneous | ⚠️ differs | — | Python,Node=2375d5b5; .NET=5ac2a334; Rust,Java=45527c43; Go=72727c6e |
+| records_homogeneous | ⚠️ differs | — | Python,Node=2375d5b5; .NET=5ac2a334; Rust,Java=45527c43; Go=bf3fd433 |
 
 ### msgpack  _(byte-identity guaranteed)_
 
