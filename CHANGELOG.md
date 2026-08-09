@@ -6,6 +6,8 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-09
+
 ### Added
 - **Partial-stream failure semantics (Python)** — `encode_checked_array` /
   `decode_checked_array` with `StreamError` and `TruncatedStream`. A streamed

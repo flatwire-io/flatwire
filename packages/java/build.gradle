@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'io.github.flatwire-io'
-version = '0.5.0'
+version = '0.6.0'
 
 java {
     toolchain {
@@ -53,7 +53,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
     signAllPublications()
 
-    coordinates('io.github.flatwire-io', 'flatwire', '0.5.0')
+    coordinates('io.github.flatwire-io', 'flatwire', '0.6.0')
 
     pom {
         name = 'flatwire'
@@ -79,6 +79,7 @@ mavenPublishing {
         }
     }
 }
+
 
 
 
