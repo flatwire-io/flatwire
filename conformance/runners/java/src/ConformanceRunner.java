@@ -3,6 +3,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.flatwire.FlatWire;
 import io.flatwire.FlatXml;
 import io.flatwire.FlatMsgPack;
+import io.flatwire.FlatCbor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class ConformanceRunner {
 
     static final ObjectMapper MAPPER = new ObjectMapper();
-    static final String[] FORMATS = {"json", "xml", "msgpack"};
+    static final String[] FORMATS = {"json", "xml", "msgpack", "cbor"};
 
     public static void main(String[] args) throws Exception {
         File dir = new File(System.getProperty("user.dir"));
@@ -98,6 +99,7 @@ public class ConformanceRunner {
             case "json": FlatWire.encodeArray(elements, out); break;
             case "xml": FlatXml.encodeArray(elements, out); break;
             case "msgpack": FlatMsgPack.encodeArray(elements, out); break;
+            case "cbor": FlatCbor.encodeArray(elements, out); break;
         }
         return out.toByteArray();
     }
@@ -115,6 +117,9 @@ public class ConformanceRunner {
                 break;
             case "msgpack":
                 FlatMsgPack.decodeArray(new ByteArrayInputStream(data), out::add);
+                break;
+            case "cbor":
+                FlatCbor.decodeArray(new ByteArrayInputStream(data), out::add);
                 break;
         }
         return out;

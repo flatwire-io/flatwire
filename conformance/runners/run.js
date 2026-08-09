@@ -11,7 +11,7 @@ const { Readable, Writable } = require('node:stream');
 const ROOT = path.resolve(__dirname, '..');
 const fw = require(path.join(ROOT, '..', 'packages', 'js', 'index.js'));
 
-const FORMATS = ['json', 'xml', 'msgpack'];
+const FORMATS = ['json', 'xml', 'msgpack', 'cbor'];
 
 function sink() {
   const chunks = [];

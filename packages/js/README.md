@@ -47,14 +47,14 @@ guard). Set `maxDepth: 0` to disable.
 
 ## Formats
 
-The streaming array pair also speaks **XML** and binary **MessagePack** via the `format` option — same flat memory, one API:
+The streaming array pair also speaks **XML**, binary **MessagePack**, and binary **CBOR** via the `format` option — same flat memory, one API:
 
 ```javascript
-await fw.encodeArray(rows, writable, { format: 'xml' });      // or 'msgpack'
-for await (const row of fw.decodeArray(readable, { format: 'msgpack' })) { /* ... */ }
+await fw.encodeArray(rows, writable, { format: 'xml' });      // or 'msgpack' | 'cbor'
+for await (const row of fw.decodeArray(readable, { format: 'cbor' })) { /* ... */ }
 ```
 
-JSON (default) stays byte-compatible with `JSON.stringify`; MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+JSON (default) stays byte-compatible with `JSON.stringify`; MessagePack and CBOR are byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
 
 ## Checked streams
 

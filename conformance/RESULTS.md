@@ -85,9 +85,31 @@ Every case must decode back to what was encoded, in every language. `✓` = roun
 | records_homogeneous | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | mixed | roundtrip | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
+### cbor
+
+| case | tier | Python | Node | .NET | Rust | Go | Java |
+|---|---|---|---|---|---|---|---|
+| empty | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| nulls_bools | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| int_fixints | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| int_boundaries | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| int_beyond_js_safe | roundtrip | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| floats_simple | roundtrip | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| floats_extreme | roundtrip | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| strings_basic | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| strings_escapes | roundtrip | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| strings_unicode | roundtrip | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| strings_punctuation | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| object_small | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| object_unicode_keys | roundtrip | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| arrays_nested | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| deep_nesting | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| records_homogeneous | identical | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| mixed | roundtrip | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
 ## Byte-identity across languages
 
-**MessagePack (binary) is canonical**, so flatwire guarantees *byte-identical* encoding across every language: same integer widths (non-negative→smallest unsigned, negative→smallest signed), IEEE-754 floats, length-prefixed UTF-8 strings, and **sorted map keys**. **JSON and XML are text**, where escaping, whitespace, float formatting and key order legitimately differ across ecosystems — so we guarantee *round-trip*, not byte-identity, for those. The tables below report what actually holds.
+**MessagePack and CBOR (binary) are canonical**, so flatwire guarantees *byte-identical* encoding across every language: deterministic integer widths, IEEE-754 floats, length-prefixed UTF-8 strings, and **sorted map keys**. **JSON and XML are text**, where escaping, whitespace, float formatting and key order legitimately differ across ecosystems — so we guarantee *round-trip*, not byte-identity, for those. The tables below report what actually holds.
 
 ### json  _(round-trip only; byte differences expected)_
 
@@ -114,10 +136,10 @@ Every case must decode back to what was encoded, in every language. `✓` = roun
 | int_boundaries | ⚠️ differs | — | Python,Node,Rust,Go,Java=104d1b84; .NET=8a8fefde |
 | strings_basic | ⚠️ differs | — | Python,Node,Rust,Go,Java=a5e5510f; .NET=5c507965 |
 | strings_punctuation | ⚠️ differs | — | Python,Node,Rust,Go,Java=0ed18908; .NET=9a506b9d |
-| object_small | ⚠️ differs | — | Python,Node=f6eb8e5a; .NET=5ec0f48e; Rust=e7b825da; Go=cfb2ee16; Java=fcb16c1c |
+| object_small | ⚠️ differs | — | Python,Node=f6eb8e5a; .NET=5ec0f48e; Rust=e7b825da; Go=a0027224; Java=fcb16c1c |
 | arrays_nested | ⚠️ differs | — | Python,Node=19b60aa3; .NET=b7f8eca4; Rust,Go,Java=fc13279b |
 | deep_nesting | ⚠️ differs | — | Python,Node,Rust,Go,Java=446311bb; .NET=bcd83305 |
-| records_homogeneous | ⚠️ differs | — | Python,Node=2375d5b5; .NET=5ac2a334; Rust,Java=45527c43; Go=4301a70c |
+| records_homogeneous | ⚠️ differs | — | Python,Node=2375d5b5; .NET=5ac2a334; Rust,Java=45527c43; Go=48a59cb7 |
 
 ### msgpack  _(byte-identity guaranteed)_
 
@@ -134,9 +156,25 @@ Every case must decode back to what was encoded, in every language. `✓` = roun
 | deep_nesting | ✅ identical | `7835ccdbf280` | 6 langs agree |
 | records_homogeneous | ✅ identical | `e67f574631ad` | 6 langs agree |
 
+### cbor  _(byte-identity guaranteed)_
+
+| case | shared bytes? | SHA-256 (first 12) | note |
+|---|---|---|---|
+| empty | ✅ identical | `e3b0c44298fc` | 6 langs agree |
+| nulls_bools | ✅ identical | `70c579d85605` | 6 langs agree |
+| int_fixints | ✅ identical | `e4586736c15d` | 6 langs agree |
+| int_boundaries | ✅ identical | `3fe39baed056` | 6 langs agree |
+| strings_basic | ✅ identical | `12674b5fe41f` | 6 langs agree |
+| strings_punctuation | ✅ identical | `c99e9c235247` | 6 langs agree |
+| object_small | ✅ identical | `ccafd13dd7a6` | 6 langs agree |
+| arrays_nested | ✅ identical | `312f52300346` | 6 langs agree |
+| deep_nesting | ✅ identical | `b3d294bd51bf` | 6 langs agree |
+| records_homogeneous | ✅ identical | `b791d609b31d` | 6 langs agree |
+
 ## Summary
 
 - **Round-trip:** all cases round-trip in every reporting language ✅
 - **MessagePack byte-identity:** 10/10 identical-tier cases are byte-identical across all reporting languages ✅ — **every value encodes to the same bytes in every language.**
+- **CBOR byte-identity:** 10/10 identical-tier cases are byte-identical across all reporting languages ✅ — **every value encodes to the same bytes in every language.**
 - **JSON:** round-trips everywhere; byte-identical in 10/10 cases (text-format differences across ecosystems are expected).
 - **XML:** round-trips everywhere; byte-identical in 0/10 cases (text-format differences across ecosystems are expected).

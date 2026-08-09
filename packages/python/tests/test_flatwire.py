@@ -215,3 +215,69 @@ def test_streaming_array_uses_far_less_peak_memory():
 
     # Streaming should use dramatically less transient memory than materializing.
     assert peak_stream < peak_whole / 5, (peak_stream, peak_whole)
+
+
+def test_cbor_encode_array_then_decode_array_roundtrips():
+    items = [
+        {"id": i, "name": f"row-{i}", "ok": i % 2 == 0, "tags": ["a", "b"], "score": i + 0.5, "note": None}
+        for i in range(1000)
+    ]
+    buf = io.BytesIO()
+    n = flatwire.encode_array(iter(items), buf, format="cbor")
+    assert n == 1000
+    buf.seek(0)
+    assert list(flatwire.decode_array(buf, format="cbor")) == items
+
+
+def test_cbor_preserves_types_and_unicode():
+    tricky = [
+        42, -7, 300, -300, 100000, 4294967296,
+        3.14159, -1.5, True, False, None,
+        "unïcode ✓ €uro 🎯",
+        [1, [2, 3], {"k": "v"}],
+        {"nested": {"deep": [None, True, "x"]}},
+    ]
+    buf = io.BytesIO()
+    flatwire.encode_array(iter(tricky), buf, format="cbor")
+    buf.seek(0)
+    assert list(flatwire.decode_array(buf, format="cbor")) == tricky
+
+
+def test_cbor_decodes_across_tiny_chunks():
+    items = [{"id": i, "vals": [i, i + 1, i + 2]} for i in range(2000)]
+    buf = io.BytesIO()
+    flatwire.encode_array(iter(items), buf, format="cbor")
+    buf.seek(0)
+    assert list(flatwire.decode_array(buf, format="cbor", chunk_size=7)) == items
+
+
+def test_cbor_canonical_known_vectors():
+    # Deterministic CBOR head/value encodings (RFC 8949). These fixed bytes are
+    # what every flatwire language must reproduce for byte-identity.
+    from flatwire import cbor
+    def enc(v):
+        b = bytearray(); cbor._encode_value(v, b); return bytes(b)
+    assert enc(0) == b"\x00"
+    assert enc(23) == b"\x17"
+    assert enc(24) == b"\x18\x18"
+    assert enc(255) == b"\x18\xff"
+    assert enc(256) == b"\x19\x01\x00"
+    assert enc(-1) == b"\x20"
+    assert enc(-24) == b"\x37"
+    assert enc(-25) == b"\x38\x18"
+    assert enc(True) == b"\xf5"
+    assert enc(False) == b"\xf4"
+    assert enc(None) == b"\xf6"
+    assert enc("a") == b"\x61\x61"
+    assert enc([1, 2, 3]) == b"\x83\x01\x02\x03"
+    # Map keys sorted by UTF-8 bytes: "a" before "b".
+    assert enc({"b": 2, "a": 1}) == b"\xa2\x61\x61\x01\x61\x62\x02"
+    # Float is always 64-bit (0xFB).
+    assert enc(1.5) == b"\xfb\x3f\xf8\x00\x00\x00\x00\x00\x00"
+
+
+def test_cbor_is_more_compact_than_json():
+    items = [{"id": i, "name": f"row-{i}", "ok": i % 2 == 0} for i in range(1000)]
+    jb = io.BytesIO(); flatwire.encode_array(iter(items), jb, format="json")
+    cb = io.BytesIO(); flatwire.encode_array(iter(items), cb, format="cbor")
+    assert len(cb.getvalue()) < len(jb.getvalue())

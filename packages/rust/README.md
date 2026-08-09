@@ -50,16 +50,18 @@ disables it.
 
 ## Formats
 
-Beyond JSON (default), the streaming array pair also speaks **XML** and binary **MessagePack** — same flat memory:
+Beyond JSON (default), the streaming array pair also speaks **XML**, binary **MessagePack**, and binary **CBOR** — same flat memory:
 
 ```rust
 flatwire::xml::encode_array(items.iter(), &mut writer, "items")?;
 for row in flatwire::xml::decode_array(reader, "item") { /* ... */ }
 flatwire::msgpack::encode_array(items.iter(), &mut writer)?;
 for row in flatwire::msgpack::decode_array(reader) { /* ... */ }
+flatwire::cbor::encode_array(items.iter(), &mut writer)?;
+for row in flatwire::cbor::decode_array(reader) { /* ... */ }
 ```
 
-MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+MessagePack and CBOR are byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
 
 ## Checked streams
 

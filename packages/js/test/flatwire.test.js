@@ -264,3 +264,54 @@ test('checked stream: decodes reference wire envelope (cross-language interop)',
   assert.strictEqual(out.length, 2);
   assert.strictEqual(out[1].name, 'b');
 });
+
+test('cbor encodeArray/decodeArray round-trips with types', async () => {
+  const items = [
+    { id: 1, name: 'row-1', ok: true, tags: ['a', 'b'], score: 3.5, note: null },
+    42, -7, 300, -300, 100000, 'unïcode ✓ €uro 🎯', [1, 2, 3], null, true, 3.14159, -1.5,
+  ];
+  const w = sink();
+  const n = await fw.encodeArray(items, w, { format: 'cbor' });
+  assert.strictEqual(n, items.length);
+  const out = [];
+  for await (const el of fw.decodeArray(Readable.from(w.collected()), { format: 'cbor' })) out.push(el);
+  assert.deepStrictEqual(out, items);
+});
+
+test('cbor canonical known vectors (byte-identical wire)', async () => {
+  const cbor = require('../cbor.js');
+  async function enc(v) { const w = sink(); await cbor.encodeArray([v], w); return w.collected().toString('hex'); }
+  assert.strictEqual(await enc(0), '00');
+  assert.strictEqual(await enc(23), '17');
+  assert.strictEqual(await enc(24), '1818');
+  assert.strictEqual(await enc(255), '18ff');
+  assert.strictEqual(await enc(256), '190100');
+  assert.strictEqual(await enc(-1), '20');
+  assert.strictEqual(await enc(-24), '37');
+  assert.strictEqual(await enc(-25), '3818');
+  assert.strictEqual(await enc(true), 'f5');
+  assert.strictEqual(await enc(false), 'f4');
+  assert.strictEqual(await enc(null), 'f6');
+  assert.strictEqual(await enc('a'), '6161');
+  assert.strictEqual(await enc([1, 2, 3]), '83010203');
+  assert.strictEqual(await enc({ b: 2, a: 1 }), 'a26161016162 02'.replace(/ /g, ''));
+  assert.strictEqual(await enc(1.5), 'fb3ff8000000000000');
+});
+
+test('cbor is more compact than JSON', async () => {
+  const items = Array.from({ length: 1000 }, (_, i) => ({ id: i, name: `row-${i}`, ok: i % 2 === 0 }));
+  const jw = sink(); await fw.encodeArray(items, jw, { format: 'json' });
+  const cw = sink(); await fw.encodeArray(items, cw, { format: 'cbor' });
+  assert.ok(cw.collected().length < jw.collected().length);
+});
+
+test('cbor decodes across tiny chunks', async () => {
+  const items = Array.from({ length: 2000 }, (_, i) => ({ id: i, vals: [i, i + 1, i + 2] }));
+  const w = sink();
+  await fw.encodeArray(items, w, { format: 'cbor' });
+  const bytes = w.collected();
+  function* tiny() { for (let i = 0; i < bytes.length; i += 5) yield bytes.subarray(i, i + 5); }
+  const out = [];
+  for await (const el of fw.decodeArray(Readable.from(tiny()), { format: 'cbor' })) out.push(el);
+  assert.deepStrictEqual(out, items);
+});

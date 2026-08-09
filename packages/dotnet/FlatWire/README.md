@@ -44,15 +44,16 @@ await foreach (var row in Flat.DecodeArray<Row>(stream))
 
 ## Formats
 
-Beyond JSON (default), the streaming array pair also speaks **XML** and binary **MessagePack** — same flat memory, separate helper classes:
+Beyond JSON (default), the streaming array pair also speaks **XML**, binary **MessagePack**, and binary **CBOR** — same flat memory, separate helper classes:
 
 ```csharp
 FlatXml.EncodeArray(items, stream);
 await foreach (var row in ...) { }              // FlatXml.DecodeArray(stream)
 FlatMsgPack.EncodeArray(items, stream);          // FlatMsgPack.DecodeArray(stream)
+FlatCbor.EncodeArray(items, stream);             // FlatCbor.DecodeArray(stream)
 ```
 
-MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+MessagePack and CBOR are byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
 
 ## Checked streams
 

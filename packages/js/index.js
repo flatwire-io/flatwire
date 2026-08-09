@@ -65,7 +65,8 @@ async function encodeArray(items, writable, opts = {}) {
   const format = opts.format || 'json';
   if (format === 'xml') return require('./xml.js').encodeArray(items, writable, opts);
   if (format === 'msgpack') return require('./msgpack.js').encodeArray(items, writable, opts);
-  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json', 'xml', or 'msgpack')`);
+  if (format === 'cbor') return require('./cbor.js').encodeArray(items, writable, opts);
+  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json', 'xml', 'msgpack', or 'cbor')`);
   const signal = opts.signal;
   checkAborted(signal);
   await write(writable, OPEN);
@@ -86,7 +87,8 @@ function decodeArray(readable, opts = {}) {
   const format = opts.format || 'json';
   if (format === 'xml') return require('./xml.js').decodeArray(readable, opts);
   if (format === 'msgpack') return require('./msgpack.js').decodeArray(readable, opts);
-  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json', 'xml', or 'msgpack')`);
+  if (format === 'cbor') return require('./cbor.js').decodeArray(readable, opts);
+  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json', 'xml', 'msgpack', or 'cbor')`);
   return jsonDecodeArray(readable, opts);
 }
 
@@ -161,6 +163,7 @@ const MEDIA_TYPES = {
   json: 'application/json',
   xml: 'application/xml',
   msgpack: 'application/msgpack',
+  cbor: 'application/cbor',
 };
 
 // One-line HTTP adapter: stream a large collection to an HTTP response (Node

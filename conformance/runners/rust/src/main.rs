@@ -4,7 +4,7 @@
 use std::io::Cursor;
 use std::path::PathBuf;
 
-use flatwire::{msgpack, xml};
+use flatwire::{cbor, msgpack, xml};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
@@ -42,6 +42,9 @@ fn encode(elements: &[Value], fmt: &str) -> std::io::Result<Vec<u8>> {
         "msgpack" => {
             msgpack::encode_array(elements.iter(), &mut buf)?;
         }
+        "cbor" => {
+            cbor::encode_array(elements.iter(), &mut buf)?;
+        }
         _ => unreachable!(),
     }
     Ok(buf)
@@ -54,6 +57,7 @@ fn decode(data: Vec<u8>, fmt: &str) -> std::io::Result<Vec<Value>> {
             .collect(),
         "xml" => xml::decode_array(Cursor::new(data), "item").collect(),
         "msgpack" => msgpack::decode_array(Cursor::new(data)).collect(),
+        "cbor" => cbor::decode_array(Cursor::new(data)).collect(),
         _ => unreachable!(),
     }
 }
@@ -62,7 +66,7 @@ fn main() {
     let root = corpus_root();
     let corpus: Value =
         serde_json::from_str(&std::fs::read_to_string(root.join("corpus.json")).unwrap()).unwrap();
-    let formats = ["json", "xml", "msgpack"];
+    let formats = ["json", "xml", "msgpack", "cbor"];
 
     let mut cases = serde_json::Map::new();
     let mut passed = 0usize;

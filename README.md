@@ -35,14 +35,14 @@ The most common large payload is a **big homogeneous collection** (100k records)
 - **Encoding** writes each element straight to the output stream, so peak memory is bounded by the *largest single element* — not the length of the collection.
 - **Decoding** parses a top-level JSON array lazily, yielding one element at a time, so you never hold the whole array at once.
 
-The wire format stays **plain JSON**, byte-compatible with each ecosystem's standard serializer — nothing downstream changes. XML and binary MessagePack are opt-in via `format=`.
+The wire format stays **plain JSON**, byte-compatible with each ecosystem's standard serializer — nothing downstream changes. XML, binary MessagePack, and binary CBOR are opt-in via `format=`.
 
 ## One identical contract, proven across six languages
 
 The technique isn't the differentiator — every ecosystem ships a streaming primitive. **The differentiator is one identical API and one identical wire, verified across all six languages in CI.** A shared [conformance corpus](conformance/) (unicode edge cases, deep nesting, integer-width boundaries, huge numbers, empty collections) runs through every implementation on every push, and an aggregator publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md):
 
 - **Round-trip:** every corpus case decodes back to what was encoded, in **all six languages**.
-- **MessagePack byte-identity:** every value encodes to the **exact same bytes** in Python, Node, .NET, Rust, Go, and Java — canonical integer widths, IEEE-754 floats, sorted map keys. A claim no other polyglot serializer makes.
+- **MessagePack & CBOR byte-identity:** every value encodes to the **exact same bytes** in Python, Node, .NET, Rust, Go, and Java — canonical integer widths, IEEE-754 floats, sorted map keys. A claim no other polyglot serializer makes.
 - **JSON / XML:** round-trip-guaranteed; being text formats, byte representation legitimately varies across ecosystems (escaping, whitespace, float text) — and the matrix reflects that rather than overclaiming.
 
 The suite has already caught and fixed real cross-language bugs. See [`conformance/`](conformance/).
@@ -122,13 +122,13 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v0.7 — three formats, six languages, proven by conformance CI, with production hardening.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, and binary MessagePack** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity).
+**v0.8 — four formats, six languages, proven by conformance CI, with production hardening.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, binary MessagePack, and binary CBOR** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity).
 
 ### Shipped
-- **Multi-format core** — one `encode_array` / `decode_array` API over **JSON, XML, and binary MessagePack** behind a `format` selector, in all six languages. MessagePack output is **byte-identical across all six runtimes** (canonical integers + sorted keys), proven by conformance CI. ([design](docs/FORMATS.md))
+- **Multi-format core** — one `encode_array` / `decode_array` API over **JSON, XML, binary MessagePack, and binary CBOR** behind a `format` selector, in all six languages. Both binary formats are **byte-identical across all six runtimes** (canonical integers + sorted keys), proven by conformance CI. ([design](docs/FORMATS.md))
 - **Partial-stream failure semantics in all six languages** — checked streams (`encode_checked_array` / `decode_checked_array`) whose terminal status is written *last*, so a consumer tells clean completion, an in-band producer error after N rows, and truncation apart. The envelope is plain JSON, so a checked stream written in any language decodes in every other. ([docs](docs/FAILURE.md))
 - **Benchmarks for all six languages**, wired into CI as regression guards, versus each ecosystem's best-configured standard libraries. ([summary](docs/BENCHMARKS.md))
-- **Benchmark dashboard** (React) rendering the measured memory/time results → [flatwire-io.github.io/flatwire](https://flatwire-io.github.io/flatwire/), plus a browser [protocol playground](https://flatwire-io.github.io/flatwire/playground.html) that encodes/decodes all three formats live.
+- **Benchmark dashboard** (React) rendering the measured memory/time results → [flatwire-io.github.io/flatwire](https://flatwire-io.github.io/flatwire/), plus a browser [protocol playground](https://flatwire-io.github.io/flatwire/playground.html) that encodes/decodes all formats live.
 - **Backpressure & cancellation (Node)**, **framework adapters** (FastAPI / Express / Fastify), and a **latency + concurrency benchmark** (TTFB, memory under load). ([backpressure](docs/BACKPRESSURE.md) · [adapters](docs/ADAPTERS.md) · [transports](docs/TRANSPORTS.md))
 
 ## Design principles

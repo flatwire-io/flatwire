@@ -45,16 +45,18 @@ _ = flatwire.DecodeArray(r, func(raw json.RawMessage) error {
 
 ## Formats
 
-Beyond JSON (default), the streaming array pair also speaks **XML** and binary **MessagePack** — same flat memory:
+Beyond JSON (default), the streaming array pair also speaks **XML**, binary **MessagePack**, and binary **CBOR** — same flat memory:
 
 ```go
 flatwire.EncodeArrayXML(items, w, "items")
 flatwire.DecodeArrayXML(r, "item", func(v any) error { return nil })
 flatwire.EncodeArrayMsgPack(items, w)
 flatwire.DecodeArrayMsgPack(r, func(v any) error { return nil })
+flatwire.EncodeArrayCBOR(items, w)
+flatwire.DecodeArrayCBOR(r, func(v any) error { return nil })
 ```
 
-MessagePack is byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
+MessagePack and CBOR are byte-identical across all six flatwire languages (see the [conformance matrix](https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md)).
 
 ## Checked streams
 

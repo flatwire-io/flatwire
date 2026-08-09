@@ -62,8 +62,8 @@
 <body>
   <div class="wrap">
     <h1>flatwire protocol playground</h1>
-    <p class="lede">Type a JSON array of elements and watch flatwire encode it in <b>all three formats</b>
-      (JSON, XML, MessagePack) live — sizes compared, bytes annotated, round-trip verified, and a field-by-field
+    <p class="lede">Type a JSON array of elements and watch flatwire encode it in <b>all four formats</b>
+      (JSON, XML, MessagePack, CBOR) live — sizes compared, bytes annotated, round-trip verified, and a field-by-field
       inspector. Everything is computed in your browser with a codec that's <b>byte-identical to flatwire's
       six-language output</b>.</p>
     <div class="nav">
@@ -92,6 +92,7 @@
         <button data-fmt="json" class="active" onclick="selectFmt('json')">JSON</button>
         <button data-fmt="xml" onclick="selectFmt('xml')">XML</button>
         <button data-fmt="msgpack" onclick="selectFmt('msgpack')">MessagePack</button>
+        <button data-fmt="cbor" onclick="selectFmt('cbor')">CBOR</button>
       </div>
       <div id="fmtOut"></div>
     </div>
@@ -162,12 +163,13 @@
     }
 
     function renderSizeTable() {
-      const j = computed.json.size, x = computed.xml.size, m = computed.msgpack.size;
+      const j = computed.json.size, x = computed.xml.size, m = computed.msgpack.size, c = computed.cbor.size;
       const base = j;
       const rows = [
         ['JSON', computed.json, '—'],
         ['XML', computed.xml, pct(x, base)],
         ['MessagePack', computed.msgpack, pct(m, base)],
+        ['CBOR', computed.cbor, pct(c, base)],
       ];
       let html = '<thead><tr><th>format</th><th>bytes</th><th>vs JSON</th><th>round-trips</th></tr></thead><tbody>';
       for (const [name, r, delta] of rows) {
@@ -176,10 +178,10 @@
       }
       html += '</tbody>';
       document.getElementById('sizeTable').innerHTML = html;
-      const max = Math.max(j, x, m) || 1;
-      document.getElementById('sizeBars').innerHTML = [['JSON',j],['XML',x],['MessagePack',m]].map(([n,s]) =>
+      const max = Math.max(j, x, m, c) || 1;
+      document.getElementById('sizeBars').innerHTML = [['JSON',j],['XML',x],['MessagePack',m],['CBOR',c]].map(([n,s]) =>
         `<div style="display:flex;align-items:center;gap:10px;margin:5px 0"><span style="width:96px" class="muted">${n}</span>` +
-        `<span class="bar" style="width:${Math.max(2,(s/max)*70)}%;background:${n==='MessagePack'?'var(--green)':'var(--accent)'}"></span>` +
+        `<span class="bar" style="width:${Math.max(2,(s/max)*70)}%;background:${(n==='MessagePack'||n==='CBOR')?'var(--green)':'var(--accent)'}"></span>` +
         `<span class="muted" style="font-size:.8rem">${human(s)}</span></div>`).join('');
     }
     function pct(v, base) {
@@ -199,6 +201,12 @@
         out.innerHTML = `<div class="stat">${bytes.length} bytes, ${insp.values.length} top-level value(s)</div>` +
           legend() + renderHexFromTokens(bytes, insp.tokens) + renderTree(insp.tokens) +
           `<div class="stat">decoded:</div><pre>${escapeHtml(JSON.stringify(insp.values, bigintReplacer, 2))}</pre>` +
+          `<div class="stat">base64: <code>${btoa(String.fromCharCode(...bytes))}</code></div>`;
+      } else if (selectedFmt === 'cbor') {
+        const decoded = pg.decodeArrayCbor(bytes);
+        out.innerHTML = `<div class="stat">${bytes.length} bytes (canonical CBOR, byte-identical across all six languages)</div>` +
+          `<div class="stat">hex:</div><pre>${escapeHtml(pg.bytesToHex(bytes))}</pre>` +
+          `<div class="stat">decoded back:</div><pre>${escapeHtml(JSON.stringify(decoded, bigintReplacer, 2))}</pre>` +
           `<div class="stat">base64: <code>${btoa(String.fromCharCode(...bytes))}</code></div>`;
       } else {
         const text = new TextDecoder().decode(bytes);

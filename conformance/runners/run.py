@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT.parent / "packages" / "python"))
 import flatwire  # noqa: E402
 
-FORMATS = ["json", "xml", "msgpack"]
+FORMATS = ["json", "xml", "msgpack", "cbor"]
 
 
 def run_case(elements, fmt):

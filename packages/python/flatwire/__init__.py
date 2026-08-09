@@ -6,8 +6,8 @@ The v0.1 surface is deliberately tiny and identical across languages:
 - ``decode(data) -> value``           convenience, whole value
 - ``encode_to(value, fp)``            stream a value to a binary writer
 - ``decode_from(fp) -> value``        read a value from a binary reader
-- ``encode_array(items, fp, format="json"|"xml"|"msgpack")``   stream a large collection element-by-element
-- ``decode_array(fp, format="json"|"xml"|"msgpack") -> iterator`` parse a streamed collection lazily, one element at a time
+- ``encode_array(items, fp, format="json"|"xml"|"msgpack"|"cbor")``   stream a large collection element-by-element
+- ``decode_array(fp, format="json"|"xml"|"msgpack"|"cbor") -> iterator`` parse a streamed collection lazily, one element at a time
 
 The array pair is the point: a 100k-record response is written and read one
 element at a time, so peak memory is bounded by the largest single element plus a
@@ -15,8 +15,8 @@ fixed working buffer - not by the size of the whole collection.
 
 The default wire format is plain JSON and byte-compatible with the standard
 library. ``format="xml"`` streams a typed, round-trippable XML representation;
-``format="msgpack"`` streams a compact, wire-interoperable MessagePack binary
-representation for internal traffic. All three keep memory flat.
+``format="msgpack"`` and ``format="cbor"`` stream compact, wire-interoperable
+binary representations for internal traffic. All keep memory flat.
 """
 
 from .adapters import iter_encoded_array
@@ -49,6 +49,6 @@ __all__ = [
     "TruncatedStream",
 ]
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 
