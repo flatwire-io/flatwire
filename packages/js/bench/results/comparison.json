@@ -1,0 +1,42 @@
+{
+  "node": "v24.14.0",
+  "note": "peak RSS in KB, isolated child processes (~48MB Node runtime baseline included); decode reads from an on-disk file",
+  "rows": [
+    {
+      "elements": 1000,
+      "payload_bytes": 251281,
+      "agg_whole": {
+        "rss_kb": 50240,
+        "time_ms": 3.9903
+      },
+      "agg_stream": {
+        "rss_kb": 54476,
+        "time_ms": 21.3413
+      }
+    },
+    {
+      "elements": 10000,
+      "payload_bytes": 2532781,
+      "agg_whole": {
+        "rss_kb": 58808,
+        "time_ms": 16.8066
+      },
+      "agg_stream": {
+        "rss_kb": 56756,
+        "time_ms": 49.9768
+      }
+    },
+    {
+      "elements": 50000,
+      "payload_bytes": 12752781,
+      "agg_whole": {
+        "rss_kb": 96628,
+        "time_ms": 69.9689
+      },
+      "agg_stream": {
+        "rss_kb": 62320,
+        "time_ms": 179.4069
+      }
+    }
+  ]
+}
