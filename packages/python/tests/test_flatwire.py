@@ -101,6 +101,55 @@ def test_decode_array_enforces_max_depth():
         pass
 
 
+def test_xml_encode_array_then_decode_array_roundtrips():
+    items = [
+        {"id": i, "name": f"row-{i}", "ok": i % 2 == 0, "tags": ["a", "b"], "score": i + 0.5, "note": None}
+        for i in range(500)
+    ]
+    buf = io.BytesIO()
+    n = flatwire.encode_array(iter(items), buf, format="xml")
+    assert n == 500
+    buf.seek(0)
+    out = list(flatwire.decode_array(buf, format="xml"))
+    assert out == items
+
+
+def test_xml_preserves_types_and_escapes_special_chars():
+    tricky = [
+        42,
+        3.5,
+        True,
+        False,
+        None,
+        "plain",
+        'has < & > " and \' chars',
+        [1, [2, 3], {"k": "v"}],
+        {"nested": {"deep": [None, True, "x"]}},
+    ]
+    buf = io.BytesIO()
+    flatwire.encode_array(iter(tricky), buf, format="xml")
+    buf.seek(0)
+    assert list(flatwire.decode_array(buf, format="xml")) == tricky
+
+
+def test_xml_custom_root_tag():
+    items = [{"a": 1}, {"a": 2}]
+    buf = io.BytesIO()
+    flatwire.encode_array(iter(items), buf, format="xml", root="records")
+    assert buf.getvalue().startswith(b'<?xml version="1.0" encoding="UTF-8"?><records>')
+    buf.seek(0)
+    assert list(flatwire.decode_array(buf, format="xml")) == items
+
+
+def test_unknown_format_raises():
+    buf = io.BytesIO()
+    try:
+        flatwire.encode_array(iter([1]), buf, format="yaml")
+        assert False, "expected ValueError"
+    except ValueError:
+        pass
+
+
 def test_streaming_array_uses_far_less_peak_memory():
     # The core promise: peak memory for streaming a large array is bounded by one
     # element, not the whole collection. Compare peak allocation of building the

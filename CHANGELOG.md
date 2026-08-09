@@ -6,14 +6,21 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-08 (Python)
+
+### Added
+- **Streaming XML format (Python).** `encode_array` / `decode_array` now accept
+  `format="xml"` alongside the default `format="json"`, using a typed, fully
+  round-trippable convention (types are preserved via a `type` attribute; objects
+  and arrays are represented unambiguously). Encoding streams one `<item>` at a
+  time; decoding uses `iterparse` and clears each element, so peak memory stays
+  flat. Measured (`bench/xml_bench.py`): at a 12 MB document, DOM parsing
+  (`ElementTree.fromstring`) peaks at ~125 MB while streaming parse holds ~4 MB
+  (~97% lower); streaming encode is flat at ~900 bytes. This is the first step of
+  the format-pluggable roadmap in [docs/FORMATS.md](docs/FORMATS.md).
+
 ### Changed
-- **Roadmap reframed: multi-format streaming is now a goal.** What were
-  previously two non-goals — "JSON only, binary is later/internal" and "thin
-  wrapper, not a serializer" — are now explicit goals. flatwire is evolving into
-  a format-pluggable streaming serializer (JSON today; XML and binary
-  MessagePack/CBOR on the roadmap) behind the same `encode_array`/`decode_array`
-  API, with its own streaming implementation where an ecosystem lacks one. See
-  [docs/FORMATS.md](docs/FORMATS.md).
+- Roadmap reframed: multi-format streaming is now a goal (see 0.2.x notes).
 
 ## [0.2.1] - 2026-08-08
 

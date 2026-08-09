@@ -40,12 +40,24 @@ def decode_from(fp: BinaryIO) -> Any:
     return json.loads(fp.read().decode("utf-8"))
 
 
-def encode_array(items: Iterable[Any], fp: BinaryIO) -> int:
-    """Stream a large collection as a JSON array, one element at a time.
+def encode_array(items: Iterable[Any], fp: BinaryIO, format: str = "json", **kwargs) -> int:
+    """Stream a large collection element-by-element to ``fp``.
 
     Peak memory is bounded by the largest single element, not the length of the
     collection - which is the whole reason this exists. Returns the element count.
+
+    ``format`` selects the wire format: ``"json"`` (default) or ``"xml"``.
+    Format-specific options are passed through (e.g. ``root="items"`` for XML).
     """
+    if format == "json":
+        return _json_encode_array(items, fp)
+    if format == "xml":
+        from . import xml as _xml
+        return _xml.encode_array(items, fp, **kwargs)
+    raise ValueError(f"unknown format {format!r} (expected 'json' or 'xml')")
+
+
+def _json_encode_array(items: Iterable[Any], fp: BinaryIO) -> int:
     fp.write(b"[")
     count = 0
     for item in items:
@@ -58,6 +70,25 @@ def encode_array(items: Iterable[Any], fp: BinaryIO) -> int:
 
 
 def decode_array(
+    fp: BinaryIO, chunk_size: int = 65536, max_depth: int = 200,
+    format: str = "json", **kwargs
+) -> Iterator[Any]:
+    """Lazily parse a streamed collection, yielding one element at a time.
+
+    ``format`` selects the wire format: ``"json"`` (default) or ``"xml"``. For
+    JSON, a hand-written scanner finds element boundaries without loading the
+    whole array; for XML, ``iterparse`` clears each element after yielding it.
+    Either way peak memory stays proportional to the largest element.
+    """
+    if format == "xml":
+        from . import xml as _xml
+        return _xml.decode_array(fp, **kwargs)
+    if format != "json":
+        raise ValueError(f"unknown format {format!r} (expected 'json' or 'xml')")
+    return _json_decode_array(fp, chunk_size=chunk_size, max_depth=max_depth)
+
+
+def _json_decode_array(
     fp: BinaryIO, chunk_size: int = 65536, max_depth: int = 200
 ) -> Iterator[Any]:
     """Lazily parse a top-level JSON array, yielding one element at a time.
