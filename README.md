@@ -122,7 +122,7 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v0.8 — four formats, six languages, proven by conformance CI, with production hardening.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, binary MessagePack, and binary CBOR** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity).
+**v0.9 — four formats, six languages, proven by conformance CI, with production hardening and a CLI.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, binary MessagePack, and binary CBOR** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity).
 
 ### Shipped
 - **Multi-format core** — one `encode_array` / `decode_array` API over **JSON, XML, binary MessagePack, and binary CBOR** behind a `format` selector, in all six languages. Both binary formats are **byte-identical across all six runtimes** (canonical integers + sorted keys), proven by conformance CI. ([design](docs/FORMATS.md))
@@ -130,6 +130,7 @@ Each package's README has the full per-language signatures.
 - **Benchmarks for all six languages**, wired into CI as regression guards, versus each ecosystem's best-configured standard libraries. ([summary](docs/BENCHMARKS.md))
 - **Benchmark dashboard** (React) rendering the measured memory/time results → [flatwire-io.github.io/flatwire](https://flatwire-io.github.io/flatwire/), plus a browser [protocol playground](https://flatwire-io.github.io/flatwire/playground.html) that encodes/decodes all formats live.
 - **Backpressure & cancellation (Node)**, **framework adapters** (FastAPI / Express / Fastify), and a **latency + concurrency benchmark** (TTFB, memory under load). ([backpressure](docs/BACKPRESSURE.md) · [adapters](docs/ADAPTERS.md) · [transports](docs/TRANSPORTS.md))
+- **`flatwire` command-line tool** — `cat` / `convert` / `stats` over all four wire formats, streaming any-size files in constant memory (ships with `pip install flatwire`). ([docs](docs/CLI.md))
 
 ## Design principles
 
@@ -145,6 +146,8 @@ Each package's README has the full per-language signatures.
 - **[Live benchmark dashboard](https://flatwire-io.github.io/flatwire/)** — an interactive visualization of the measured numbers (source in [`web/`](web/)).
 - **[Protocol playground](https://flatwire-io.github.io/flatwire/playground.html)** — encode JSON to flatwire's canonical MessagePack and inspect any byte stream field-by-field, in the browser.
 - **[Multi-format design](docs/FORMATS.md)** — the JSON → XML → binary roadmap.
+- **[Command-line tool](docs/CLI.md)** — `flatwire cat` / `convert` / `stats`: a streaming Swiss-army knife over all four wire formats, constant memory on any file size.
+- **[Architecture recipes](docs/RECIPES.md)** — copy-paste production patterns: cloud storage → Postgres/ClickHouse/Parquet, Kafka/NATS message streams, and LLM token streams with checked failure semantics.
 - **[Transports](docs/TRANSPORTS.md)** — flatwire as a pure data layer: move a stream over HTTP/WebSocket/QUIC/TCP/Unix-socket/shared-memory without changing payload code.
 - **[Failure semantics](docs/FAILURE.md)** — checked streams that tell clean completion, producer error, and truncation apart, in-band, with flat memory.
 - **[Backpressure & cancellation](docs/BACKPRESSURE.md)** — encoders honor the writer's backpressure so a slow consumer throttles the producer, plus `AbortSignal` cancellation.
