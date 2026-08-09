@@ -71,6 +71,13 @@ flatwire is **not** a faster serializer than the optimized C extensions — it t
 
 So: use `orjson`/`msgspec` when you need the whole collection resident and want speed; use flatwire when you're streaming a large array and **memory is the constraint**. Per-ecosystem harnesses for the other five languages are on the roadmap.
 
+### The numbers a service owner feels
+
+Peak memory is the engineering story; **time-to-first-row** and **behavior under concurrency** are what buyers feel. Measured in Python ([full report](packages/python/bench/LATENCY.md)):
+
+- **Time-to-first-row** over a simulated network: a materialize-then-parse handler must receive the whole response before it can emit row 0, so its TTFB scales with size — **490 ms at 10k rows, 2.8 s at 50k**. flatwire streaming emits row 0 in **~1 ms, flat**. That's **500–1900× faster to first row.**
+- **Memory under concurrency**: 32 concurrent decodes of a 20k-row payload use **266 MB materialized vs 4.1 MB streaming (~65× less)** — flat peak per request is why p99 stops cliff-diving under load.
+
 ## Install
 
 | Ecosystem | Install | Package dir |

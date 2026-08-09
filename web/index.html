@@ -170,6 +170,28 @@
             </div>
           )}
 
+          {data.ttfb && (
+            <ComparisonCard
+              title="Time-to-first-row — the latency buyers feel"
+              sub={data.ttfb.note}
+              rows={data.ttfb.rows}
+              keys={["materialized", "streaming"]}
+              colors={[COLORS.materialized, COLORS.stream2]}
+              fmt={(v) => v + " ms"}
+              foot="Materialize-then-parse must receive the whole response before it can hand over row 0, so its TTFB scales with payload size; streaming stays ~constant near 1 ms. At 10k rows that's 490 ms → 0.9 ms." />
+          )}
+
+          {data.concurrencyMem && (
+            <ComparisonCard
+              title="Memory under concurrency — why p99 stops cliff-diving"
+              sub={data.concurrencyMem.note}
+              rows={data.concurrencyMem.rows}
+              keys={["materialized", "streaming"]}
+              colors={[COLORS.materialized, COLORS.streaming]}
+              fmt={humanBytes}
+              foot="Each materialized request holds a full copy, so memory grows ~linearly with concurrency; streaming holds one element per request. At 32 concurrent decodes, ~65× less memory — the difference between surviving a spike and OOMing." />
+          )}
+
           <ComparisonCard
             title="Encode memory — materialized vs streaming"
             sub={data.encodeMemory.note}

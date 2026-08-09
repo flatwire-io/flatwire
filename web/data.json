@@ -10,6 +10,24 @@
     "msgpackByteIdentical": true,
     "matrixUrl": "https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md"
   },
+  "ttfb": {
+    "unit": "ms",
+    "note": "Python: time to hand a client its first row over a simulated network. A materialize-then-parse handler must download and parse the whole payload first; streaming emits row 0 as soon as the first bytes arrive.",
+    "rows": [
+      { "size": "1k (167 KB)", "materialized": 45.8, "streaming": 0.9 },
+      { "size": "10k (1.7 MB)", "materialized": 490.6, "streaming": 0.9 },
+      { "size": "50k (8.3 MB)", "materialized": 2796.4, "streaming": 1.5 }
+    ]
+  },
+  "concurrencyMem": {
+    "unit": "bytes",
+    "note": "Python: peak memory for N concurrent decodes of a 20k-row payload. Materialized holds a full copy per request (grows ~linearly); streaming holds one element per request (sub-linear).",
+    "rows": [
+      { "size": "1 concurrent", "materialized": 12058624, "streaming": 198246 },
+      { "size": "8 concurrent", "materialized": 72351744, "streaming": 1153434 },
+      { "size": "32 concurrent", "materialized": 279119872, "streaming": 4299161 }
+    ]
+  },
   "encodeMemory": {
     "unit": "bytes",
     "note": "Peak/allocated memory to encode the whole collection vs streaming element-by-element. Lower is better.",

@@ -24,6 +24,11 @@ All notable changes to flatwire are documented here. The format follows
 - **Framework adapters** — one-line streaming responses: Python
   `iter_encoded_array` for FastAPI/Starlette and Node `sendArray` for
   Express/Fastify/http. See [docs/ADAPTERS.md](docs/ADAPTERS.md).
+- **Latency & concurrency benchmark** — time-to-first-row (490 ms → 0.9 ms at 10k
+  rows) and memory under concurrency (266 MB → 4.1 MB at 32 concurrent), the
+  numbers a service owner feels. See
+  [packages/python/bench/LATENCY.md](packages/python/bench/LATENCY.md); surfaced
+  on the dashboard.
 - **Protocol playground** ([web/playground.html](web/playground.html)) — encode
   in all three formats live with a size comparison, and inspect any MessagePack
   byte stream field-by-field, in the browser.
