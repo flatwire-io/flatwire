@@ -1,0 +1,35 @@
+{
+  "note": "bytes allocated per operation via GC.GetAllocatedBytesForCurrentThread",
+  "results": [
+    {
+      "elements": 1000,
+      "payload_bytes": 251281,
+      "encode_whole_bytes": 251624,
+      "encode_stream_bytes": 5072,
+      "agg_whole_peak_live": 641096,
+      "agg_stream_peak_live": 624960,
+      "agg_whole_cumulative_alloc": 625464,
+      "agg_stream_cumulative_alloc": 613072
+    },
+    {
+      "elements": 10000,
+      "payload_bytes": 2532781,
+      "encode_whole_bytes": 2533120,
+      "encode_stream_bytes": 4920,
+      "agg_whole_peak_live": 5595688,
+      "agg_stream_peak_live": 3815872,
+      "agg_whole_cumulative_alloc": 6342848,
+      "agg_stream_cumulative_alloc": 6083096
+    },
+    {
+      "elements": 50000,
+      "payload_bytes": 12752781,
+      "encode_whole_bytes": 12753120,
+      "encode_stream_bytes": 4920,
+      "agg_whole_peak_live": 26419048,
+      "agg_stream_peak_live": 3742720,
+      "agg_whole_cumulative_alloc": 31449328,
+      "agg_stream_cumulative_alloc": 30403096
+    }
+  ]
+}
