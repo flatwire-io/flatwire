@@ -17,7 +17,7 @@ def test_iter_encoded_array_json_matches_encode_array():
 
 def test_iter_encoded_array_all_formats_roundtrip():
     items = [{"id": i, "ok": i % 2 == 0} for i in range(50)]
-    for fmt in ("json", "xml", "msgpack"):
+    for fmt in ("json", "xml", "msgpack", "cbor"):
         data = _collect(flatwire.iter_encoded_array(iter(items), format=fmt))
         out = list(flatwire.decode_array(io.BytesIO(data), format=fmt))
         assert out == items, fmt
@@ -43,3 +43,4 @@ def test_iter_encoded_array_is_lazy():
 def test_media_types_present():
     assert flatwire.adapters.MEDIA_TYPES["json"] == "application/json"
     assert flatwire.adapters.MEDIA_TYPES["msgpack"] == "application/msgpack"
+    assert flatwire.adapters.MEDIA_TYPES["cbor"] == "application/cbor"

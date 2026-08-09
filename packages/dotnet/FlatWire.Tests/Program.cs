@@ -197,6 +197,25 @@ using var cs4 = new MemoryStream(Encoding.UTF8.GetBytes(wire));
 var interop = FlatChecked.DecodeCheckedArray<Row>(cs4).ToList();
 Check("checked decodes reference wire envelope", interop.Count == 2 && interop[1]!.Name == "b");
 
+// --- HTTP adapter (FlatHttp) ---
+using var adms = new MemoryStream();
+long adn = FlatHttp.WriteArray(new object?[] {
+    new Dictionary<string, object?> { ["id"] = 1L, ["name"] = "a" },
+    new Dictionary<string, object?> { ["id"] = 2L, ["name"] = "b" }, 7L }, adms, "cbor");
+Check("FlatHttp.WriteArray count", adn == 3);
+adms.Position = 0;
+Check("FlatHttp.WriteArray streams decodable cbor", FlatCbor.DecodeArray(adms).Count() == 3);
+Check("FlatHttp media types cover all four formats",
+    FlatHttp.MediaTypes["json"] == "application/json" && FlatHttp.MediaTypes["xml"] == "application/xml"
+    && FlatHttp.MediaTypes["msgpack"] == "application/msgpack" && FlatHttp.MediaTypes["cbor"] == "application/cbor");
+using var adjs = new MemoryStream();
+FlatHttp.WriteJsonArray(Enumerable.Range(0, 100).Select(i => new Row(i, $"r-{i}", true)), adjs);
+adjs.Position = 0;
+Check("FlatHttp.WriteJsonArray produces a valid JSON array", Flat.Decode<List<Row>>(adjs.ToArray())!.Count == 100);
+bool adThrew = false;
+try { FlatHttp.WriteArray(new object?[] { 1L }, new MemoryStream(), "protobuf"); } catch (ArgumentException) { adThrew = true; }
+Check("FlatHttp.WriteArray rejects unknown format", adThrew);
+
 Console.WriteLine(failures == 0 ? "\nALL PASSED" : $"\n{failures} FAILED");
 return failures == 0 ? 0 : 1;
 

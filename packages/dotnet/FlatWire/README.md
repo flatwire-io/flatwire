@@ -78,6 +78,20 @@ catch (TruncatedStreamException) { /* stream ended without a terminal status */ 
 The envelope is plain JSON, so a checked stream written in any flatwire language
 decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
 
+## HTTP adapter
+
+Stream a large collection to any `Stream` with flat memory; wire it into an
+ASP.NET Minimal API via the built-in `Results.Stream`:
+
+```csharp
+app.MapGet("/rows", () =>
+    Results.Stream(
+        stream => { FlatHttp.WriteArray(GetRows(), stream, "cbor"); return Task.CompletedTask; },
+        FlatHttp.MediaTypes["cbor"]));            // json | xml | msgpack | cbor
+```
+
+See [docs/ADAPTERS.md](https://github.com/flatwire-io/flatwire/blob/main/docs/ADAPTERS.md).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).

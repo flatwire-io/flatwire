@@ -81,6 +81,20 @@ case errors.As(err, &te): // stream ended without a terminal status
 The envelope is plain JSON, so a checked stream written in any flatwire language
 decodes in every other. See [docs/FAILURE.md](https://github.com/flatwire-io/flatwire/blob/main/docs/FAILURE.md).
 
+## HTTP adapter
+
+Stream a large collection straight to an `http.ResponseWriter` with flat memory —
+the Content-Type is set for you:
+
+```go
+func rows(w http.ResponseWriter, r *http.Request) {
+    _, _ = flatwire.WriteArray(w, getRows(), "cbor")   // json | xml | msgpack | cbor
+}
+// or one line: mux.Handle("/rows", flatwire.ArrayHandler(getRows(), "json"))
+```
+
+See [docs/ADAPTERS.md](https://github.com/flatwire-io/flatwire/blob/main/docs/ADAPTERS.md).
+
 ## License
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).
