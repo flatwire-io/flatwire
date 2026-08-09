@@ -2,7 +2,7 @@
 
 flatwire has a benchmark in **every** ecosystem, run on this machine and/or the
 CI runners. Each package's `bench/REPORT.md` has the full numbers and methodology;
-this page is the honest one-screen summary.
+this page is the one-screen summary.
 
 Run them all on CI via the **Benchmarks** workflow
 (`.github/workflows/benchmarks.yml`), or locally per package.
@@ -80,3 +80,4 @@ Use flatwire's `encode_array` / `decode_array` when you move a **large array**
 element resident at once, or can't afford to hold them all. Below a few MB, or
 when you need the whole collection in memory anyway, prefer your ecosystem's
 fast native serializer. Full guidance: [docs/GUIDE.md](GUIDE.md).
+

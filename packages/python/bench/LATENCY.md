@@ -44,7 +44,7 @@ At 32 concurrent decodes of a 20k-row payload, streaming uses **~65× less
 memory** — and it's the difference between an instance that survives a traffic
 spike and one that OOMs.
 
-## Why it matters
+## What this changes
 
 - **Tail latency stops cliff-diving.** Because peak memory per request is flat,
   N concurrent requests don't trigger the GC-pause / heap-pressure cascade that
@@ -52,14 +52,14 @@ spike and one that OOMs.
 - **Perceived latency collapses.** Clients that can start rendering/processing
   row 0 immediately feel a fast API even when the full result is large.
 
-## Honesty
+## Notes
 
 - These are Python numbers on one machine; the *shape* (constant streaming TTFB,
   sub-linear streaming memory) holds in every language, though absolute times
   differ — native runtimes are faster, pure-Python streaming decode trades CPU
   for memory (see the per-language [benchmark reports](../../../docs/BENCHMARKS.md)).
 - The network is simulated, not a real socket; it models "you must receive the
-  bytes before you can parse them," which is the real cause of the TTFB gap.
+  bytes before you can parse them," which is the cause of the TTFB gap.
 - Streaming's win requires that you actually *process rows as they arrive* (and,
   for memory, don't collect them all). If you need the whole list resident, use
-  the fastest materializing decoder — flatwire doesn't help there, and says so.
+  the fastest materializing decoder instead.

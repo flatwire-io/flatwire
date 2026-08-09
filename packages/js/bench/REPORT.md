@@ -21,8 +21,7 @@ baseline* delta, not the absolute number.
 Crucially, the decode input is a **real on-disk JSON file**. Streaming only saves
 memory when the data arrives from a file or socket — if you already hold the
 whole array in memory, there is nothing to save. Handing `Readable.from(buffer)`
-a whole buffer emits it as one chunk and shows no benefit; that is expected and
-honest.
+a whole buffer emits it as one chunk and shows no benefit; that is expected.
 
 ## Decode-and-aggregate from disk (sum one field over a large array)
 

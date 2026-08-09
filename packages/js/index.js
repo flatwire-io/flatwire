@@ -178,4 +178,12 @@ async function sendArray(res, items, opts = {}) {
   return count;
 }
 
-module.exports = { encode, decode, encodeTo, decodeFrom, encodeArray, decodeArray, sendArray, MEDIA_TYPES };
+const failure = require('./failure.js');
+
+module.exports = {
+  encode, decode, encodeTo, decodeFrom, encodeArray, decodeArray, sendArray, MEDIA_TYPES,
+  encodeCheckedArray: failure.encodeCheckedArray,
+  decodeCheckedArray: failure.decodeCheckedArray,
+  StreamError: failure.StreamError,
+  TruncatedStreamError: failure.TruncatedStreamError,
+};

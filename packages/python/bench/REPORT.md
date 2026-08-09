@@ -15,13 +15,13 @@ shape below is `records` — a homogeneous collection of
 `{"id", "name", "payload": 200-char string, "ok"}`, the most common real-world
 large payload.
 
-## The honest headline
+## Headline
 
 flatwire is **not** a faster serializer than `orjson` or `msgspec` — those are
 heavily optimized C extensions and they win on raw throughput. flatwire changes
 one specific thing: **peak memory when you process a large array without needing
 all of it resident at once.** It trades CPU time for flat memory. Both axes are
-reported here so that trade-off is explicit, never hidden.
+reported here.
 
 ## 1. Decode-to-list (you need all N objects in memory anyway)
 

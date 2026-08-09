@@ -139,7 +139,7 @@ For a `SharedArrayBuffer` ring buffer, write flatwire's byte chunks into the rin
 and decode them on the reader side — flatwire never assumes contiguous memory, so
 chunked delivery is already how `decode_array` works.
 
-## Why this matters
+## Benefits
 
 - **No lock-in.** Prototype over HTTP, ship over QUIC, move hot paths to a Unix
   socket or shared memory — the payload code never changes.
@@ -149,10 +149,9 @@ chunked delivery is already how `decode_array` works.
 - **Backpressure is the transport's job, and flatwire respects it.** Encoding
   writes chunk-by-chunk and honors the writer's backpressure (async `write`
   callbacks / blocking `Write`), so a slow socket throttles production instead of
-  ballooning memory. (First-class backpressure helpers per language are on the
-  roadmap.)
+  ballooning memory.
 
-## Status / honesty
+## Status
 
 flatwire is transport-agnostic **by construction today** — every `encode_array` /
 `decode_array` already takes a generic stream. The recipes above are patterns,

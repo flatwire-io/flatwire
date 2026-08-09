@@ -7,7 +7,7 @@ Numbers produced on the development machine by the
 dotnet run -c Release --project FlatWire.Bench
 ```
 
-## Two memory metrics, and why it matters
+## Two memory metrics
 
 .NET exposes `GC.GetAllocatedBytesForCurrentThread()`, a precise **cumulative**
 allocation counter. But cumulative allocation is the wrong metric for a streaming
