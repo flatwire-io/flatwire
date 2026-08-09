@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "note": "Real numbers measured on the flatwire dev machine and CI runners. Payload = 'records' shape, 50k elements (~12 MB) unless noted. See packages/*/bench/REPORT.md for full methodology.",
+    "payloadLabel": "50k records (~12 MB)"
+  },
+  "encodeMemory": {
+    "unit": "bytes",
+    "note": "Peak/allocated memory to encode the whole collection vs streaming element-by-element. Lower is better.",
+    "rows": [
+      { "lang": "Python", "materialized": 26738688, "streaming": 1434, "metric": "tracemalloc peak" },
+      { "lang": "Rust",   "materialized": 25165824, "streaming": 0,    "metric": "tracking allocator" },
+      { "lang": ".NET",   "materialized": 12793344, "streaming": 4915, "metric": "allocated bytes" },
+      { "lang": "Java",   "materialized": 26319258, "streaming": 4404019, "metric": "cumulative alloc" },
+      { "lang": "Go",     "materialized": 33554432, "streaming": 2411724, "metric": "peak heap" }
+    ]
+  },
+  "decodeMemory": {
+    "unit": "bytes",
+    "note": "Peak live memory to decode-and-aggregate the whole collection vs streaming. Lower is better. Go/Java are GC-muddied in micro-benchmarks (see reports).",
+    "rows": [
+      { "lang": "Python", "materialized": 40160870, "streaming": 203571,  "metric": "tracemalloc peak" },
+      { "lang": "Rust",   "materialized": 44879872, "streaming": 192,     "metric": "tracking allocator" },
+      { "lang": ".NET",   "materialized": 26424115, "streaming": 3774873, "metric": "peak live heap" },
+      { "lang": "Go",     "materialized": 19188285, "streaming": 14575206,"metric": "peak heap" },
+      { "lang": "Node",   "materialized": 48234496, "streaming": 13631488,"metric": "child RSS (net)" }
+    ]
+  },
+  "decodeTime": {
+    "unit": "seconds",
+    "note": "Median wall-clock time to decode-and-aggregate 50k records. flatwire trades CPU time for flat memory; the cost is small in native runtimes, large in pure-Python.",
+    "rows": [
+      { "lang": "Python", "materialized": 0.0891, "streaming": 2.7403 },
+      { "lang": "Rust",   "materialized": 0.0655, "streaming": 0.1191 },
+      { "lang": ".NET",   "materialized": 0.0715, "streaming": 0.0305 },
+      { "lang": "Go",     "materialized": 0.1043, "streaming": 0.2055 },
+      { "lang": "Java",   "materialized": 0.0206, "streaming": 0.0232 }
+    ]
+  },
+  "xml": {
+    "unit": "bytes",
+    "note": "Python: parsing a 12 MB XML document with ElementTree (DOM) vs flatwire streaming (iterparse). Streaming XML of large collections is a rare, real win.",
+    "rows": [
+      { "size": "1k (~244 KB)",  "dom": 2516582,   "streaming": 319078 },
+      { "size": "10k (~2.4 MB)", "dom": 27158118,  "streaming": 1015398 },
+      { "size": "50k (~12 MB)",  "dom": 131364454, "streaming": 4194304 }
+    ]
+  }
+}
