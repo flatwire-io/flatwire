@@ -10,7 +10,7 @@
     "test": "node --test"
   },
   "keywords": ["json", "serialization", "streaming", "memory", "performance"],
-  "author": "Parag Sawant",
+  "author": "The flatwire authors",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

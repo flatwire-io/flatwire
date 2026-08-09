@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>FlatWire</PackageId>
     <Version>0.1.0</Version>
-    <Authors>Parag Sawant</Authors>
+    <Authors>The flatwire authors</Authors>
     <Description>Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element.</Description>
     <Packagelicense>Apache-2.0</Packagelicense>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

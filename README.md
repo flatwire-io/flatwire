@@ -98,4 +98,4 @@ Each package's README has the full per-language signatures.
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE). © 2026 Parag Sawant.
+Apache-2.0 — see [LICENSE](LICENSE). © 2026 The flatwire authors.

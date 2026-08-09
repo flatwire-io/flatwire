@@ -9,7 +9,7 @@ description = "Streaming JSON serialization that keeps memory flat and time line
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
-authors = [{ name = "Parag Sawant" }]
+authors = [{ name = "The flatwire authors" }]
 keywords = ["json", "serialization", "streaming", "memory", "performance"]
 classifiers = [
   "Development Status :: 4 - Beta",
