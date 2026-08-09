@@ -4,6 +4,24 @@ All notable changes to flatwire are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project aims to follow
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-08-08
+
+### Fixed
+- **Multibyte UTF-8 split across a read boundary** in the streaming array
+  decoders. `decode_array` (Python) and `decodeArray` (JS) decoded each byte
+  chunk independently, so a multibyte character (e.g. `✓`, `€`, an emoji) whose
+  bytes straddled a chunk boundary raised a decode error or produced a
+  replacement character. Both now use an incremental UTF-8 decoder
+  (`codecs.getincrementaldecoder` / `string_decoder.StringDecoder`) that buffers
+  partial sequences across reads. The Rust decoder was already correct (it scans
+  at the byte level and only decodes complete elements); regression tests were
+  added there too. Affects Python and JS only.
+
+### Added
+- Python head-to-head benchmark (`bench/compare.py`) and comparison report
+  (`bench/REPORT.md`) measuring peak memory and time against `json`, `orjson`,
+  and `msgspec`, including the honest memory-for-time trade-off of streaming.
+
 ## [0.2.0] - 2026-08-08
 
 ### Added

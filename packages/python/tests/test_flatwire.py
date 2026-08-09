@@ -71,6 +71,15 @@ def test_decode_array_across_tiny_chunks():
     assert list(flatwire.decode_array(buf, chunk_size=61)) == items
 
 
+def test_decode_array_splits_multibyte_utf8_across_chunks():
+    # Multibyte UTF-8 characters must survive a chunk boundary landing in the
+    # middle of their byte sequence (e.g. the check mark is 3 bytes).
+    items = [{"text": "unïcode ✓ with €uros and 🎯 " + str(i)} for i in range(500)]
+    buf = io.BytesIO(flatwire.encode(items))
+    # A tiny chunk size guarantees boundaries fall inside multibyte sequences.
+    assert list(flatwire.decode_array(buf, chunk_size=7)) == items
+
+
 def test_decode_array_rejects_non_array():
     buf = io.BytesIO(b'{"not": "an array"}')
     try:

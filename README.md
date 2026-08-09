@@ -49,7 +49,17 @@ From `packages/python/bench/benchmark.py`, run on this machine (peak transient m
 
 Encode memory is **flat** — ~1.4 KB whether the payload is 0.25 MB or 12.7 MB — while the materialized path grows linearly. Decode streaming holds a fixed ~200 KB working buffer regardless of size (a **99.5%** reduction at 50k records). This is exactly the goal: **memory flat, time linear.**
 
-*(These are honest Python numbers from a tiny reference benchmark, not a fabricated cross-tool comparison. Per-ecosystem benchmarks are on the roadmap below.)*
+### Honest comparison vs orjson / msgspec / stdlib
+
+flatwire is **not** a faster serializer than the optimized C extensions — it trades CPU time for flat memory. A full head-to-head (peak memory *and* time, `json` vs `orjson` vs `msgspec` vs flatwire, across sizes and shapes) lives in **[`packages/python/bench/REPORT.md`](packages/python/bench/REPORT.md)**. The one-line summary, measured on this machine, for processing a 12 MB array element-by-element and discarding each element:
+
+| approach | peak memory | relative time |
+|---|---|---|
+| `json` (materialize then iterate) | 36.5 MB | 1× |
+| `orjson` (materialize then iterate) | 170.5 MB | ~0.65× |
+| **flatwire** (stream, discard) | **194 KB** | ~30× |
+
+So: use `orjson`/`msgspec` when you need the whole collection resident and want speed; use flatwire when you're streaming a large array and **memory is the constraint**. Per-ecosystem harnesses for the other five languages are on the roadmap.
 
 ## Install
 

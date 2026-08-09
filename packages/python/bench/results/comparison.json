@@ -1,0 +1,537 @@
+{
+  "machine": "win32",
+  "python": "3.14.3",
+  "results": [
+    {
+      "shape": "records",
+      "elements": 1000,
+      "payload_bytes": 251281,
+      "encode": {
+        "json": {
+          "time_s": 0.00156,
+          "peak_bytes": 518634
+        },
+        "flatwire.encode": {
+          "time_s": 0.00232,
+          "peak_bytes": 502636
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.00335,
+          "peak_bytes": 1370
+        },
+        "orjson": {
+          "time_s": 0.00012,
+          "peak_bytes": 262177
+        },
+        "msgspec": {
+          "time_s": 0.00021,
+          "peak_bytes": 265269
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.00134,
+          "peak_bytes": 737969
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 0.05355,
+          "peak_bytes": 724263
+        },
+        "orjson": {
+          "time_s": 0.00067,
+          "peak_bytes": 3505498
+        },
+        "msgspec": {
+          "time_s": 0.00046,
+          "peak_bytes": 487546
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.00125,
+          "peak_bytes": 737969
+        },
+        "flatwire.decode_array": {
+          "time_s": 0.0513,
+          "peak_bytes": 198541
+        },
+        "orjson": {
+          "time_s": 0.00074,
+          "peak_bytes": 3505498
+        }
+      }
+    },
+    {
+      "shape": "records",
+      "elements": 10000,
+      "payload_bytes": 2532781,
+      "encode": {
+        "json": {
+          "time_s": 0.02075,
+          "peak_bytes": 5225634
+        },
+        "flatwire.encode": {
+          "time_s": 0.02397,
+          "peak_bytes": 5065636
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.03793,
+          "peak_bytes": 1317
+        },
+        "orjson": {
+          "time_s": 0.00378,
+          "peak_bytes": 4194337
+        },
+        "msgspec": {
+          "time_s": 0.00463,
+          "peak_bytes": 3023152
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.01523,
+          "peak_bytes": 7613789
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 0.53983,
+          "peak_bytes": 6953203
+        },
+        "orjson": {
+          "time_s": 0.00841,
+          "peak_bytes": 35509162
+        },
+        "msgspec": {
+          "time_s": 0.00487,
+          "peak_bytes": 5117912
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.01506,
+          "peak_bytes": 7613789
+        },
+        "flatwire.decode_array": {
+          "time_s": 0.52587,
+          "peak_bytes": 198548
+        },
+        "orjson": {
+          "time_s": 0.0104,
+          "peak_bytes": 35509162
+        }
+      }
+    },
+    {
+      "shape": "records",
+      "elements": 50000,
+      "payload_bytes": 12752781,
+      "encode": {
+        "json": {
+          "time_s": 0.11162,
+          "peak_bytes": 26305634
+        },
+        "flatwire.encode": {
+          "time_s": 0.13226,
+          "peak_bytes": 25505636
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.19328,
+          "peak_bytes": 1256
+        },
+        "orjson": {
+          "time_s": 0.02195,
+          "peak_bytes": 16777249
+        },
+        "msgspec": {
+          "time_s": 0.03305,
+          "peak_bytes": 15305500
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.09159,
+          "peak_bytes": 38312989
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 2.72499,
+          "peak_bytes": 34748723
+        },
+        "orjson": {
+          "time_s": 0.05296,
+          "peak_bytes": 178747498
+        },
+        "msgspec": {
+          "time_s": 0.04584,
+          "peak_bytes": 25757112
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.0891,
+          "peak_bytes": 38312989
+        },
+        "flatwire.decode_array": {
+          "time_s": 2.74034,
+          "peak_bytes": 198548
+        },
+        "orjson": {
+          "time_s": 0.05809,
+          "peak_bytes": 178747498
+        }
+      }
+    },
+    {
+      "shape": "numbers",
+      "elements": 1000,
+      "payload_bytes": 26150,
+      "encode": {
+        "json": {
+          "time_s": 0.00082,
+          "peak_bytes": 64372
+        },
+        "flatwire.encode": {
+          "time_s": 0.00086,
+          "peak_bytes": 52374
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.00263,
+          "peak_bytes": 662
+        },
+        "orjson": {
+          "time_s": 0.00011,
+          "peak_bytes": 32801
+        },
+        "msgspec": {
+          "time_s": 0.00016,
+          "peak_bytes": 30565
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.00079,
+          "peak_bytes": 245365
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 0.00974,
+          "peak_bytes": 246276
+        },
+        "orjson": {
+          "time_s": 0.00025,
+          "peak_bytes": 534848
+        },
+        "msgspec": {
+          "time_s": 0.0003,
+          "peak_bytes": 220256
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.00092,
+          "peak_bytes": 245365
+        },
+        "flatwire.decode_array": {
+          "time_s": 0.01058,
+          "peak_bytes": 79343
+        },
+        "orjson": {
+          "time_s": 0.0009,
+          "peak_bytes": 534848
+        }
+      }
+    },
+    {
+      "shape": "numbers",
+      "elements": 10000,
+      "payload_bytes": 281483,
+      "encode": {
+        "json": {
+          "time_s": 0.00935,
+          "peak_bytes": 683038
+        },
+        "flatwire.encode": {
+          "time_s": 0.00931,
+          "peak_bytes": 563040
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.02907,
+          "peak_bytes": 649
+        },
+        "orjson": {
+          "time_s": 0.00114,
+          "peak_bytes": 524321
+        },
+        "msgspec": {
+          "time_s": 0.00158,
+          "peak_bytes": 347886
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.0086,
+          "peak_bytes": 2701018
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 0.11496,
+          "peak_bytes": 2439789
+        },
+        "orjson": {
+          "time_s": 0.00346,
+          "peak_bytes": 5830656
+        },
+        "msgspec": {
+          "time_s": 0.00315,
+          "peak_bytes": 2456622
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.01011,
+          "peak_bytes": 2701018
+        },
+        "flatwire.decode_array": {
+          "time_s": 0.11849,
+          "peak_bytes": 197626
+        },
+        "orjson": {
+          "time_s": 0.00439,
+          "peak_bytes": 5830656
+        }
+      }
+    },
+    {
+      "shape": "numbers",
+      "elements": 50000,
+      "payload_bytes": 1481483,
+      "encode": {
+        "json": {
+          "time_s": 0.05139,
+          "peak_bytes": 3563038
+        },
+        "flatwire.encode": {
+          "time_s": 0.05147,
+          "peak_bytes": 2963040
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.14678,
+          "peak_bytes": 650
+        },
+        "orjson": {
+          "time_s": 0.0074,
+          "peak_bytes": 2097185
+        },
+        "msgspec": {
+          "time_s": 0.0137,
+          "peak_bytes": 1761123
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.05082,
+          "peak_bytes": 13700218
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 0.6092,
+          "peak_bytes": 12259343
+        },
+        "orjson": {
+          "time_s": 0.02074,
+          "peak_bytes": 30152192
+        },
+        "msgspec": {
+          "time_s": 0.01853,
+          "peak_bytes": 12415822
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.05804,
+          "peak_bytes": 13700218
+        },
+        "flatwire.decode_array": {
+          "time_s": 0.60838,
+          "peak_bytes": 197639
+        },
+        "orjson": {
+          "time_s": 0.02453,
+          "peak_bytes": 30152192
+        }
+      }
+    },
+    {
+      "shape": "strings",
+      "elements": 1000,
+      "payload_bytes": 182891,
+      "encode": {
+        "json": {
+          "time_s": 0.00107,
+          "peak_bytes": 425854
+        },
+        "flatwire.encode": {
+          "time_s": 0.00151,
+          "peak_bytes": 854546
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.00359,
+          "peak_bytes": 1523
+        },
+        "orjson": {
+          "time_s": 0.00016,
+          "peak_bytes": 262177
+        },
+        "msgspec": {
+          "time_s": 0.00015,
+          "peak_bytes": 194749
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.00117,
+          "peak_bytes": 881207
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 0.04061,
+          "peak_bytes": 744582
+        },
+        "orjson": {
+          "time_s": 0.00056,
+          "peak_bytes": 2732516
+        },
+        "msgspec": {
+          "time_s": 0.00057,
+          "peak_bytes": 538189
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.00133,
+          "peak_bytes": 881207
+        },
+        "flatwire.decode_array": {
+          "time_s": 0.04007,
+          "peak_bytes": 386693
+        },
+        "orjson": {
+          "time_s": 0.00073,
+          "peak_bytes": 2732516
+        }
+      }
+    },
+    {
+      "shape": "strings",
+      "elements": 10000,
+      "payload_bytes": 1838891,
+      "encode": {
+        "json": {
+          "time_s": 0.01554,
+          "peak_bytes": 4277854
+        },
+        "flatwire.encode": {
+          "time_s": 0.02558,
+          "peak_bytes": 8594546
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.04153,
+          "peak_bytes": 1529
+        },
+        "orjson": {
+          "time_s": 0.00311,
+          "peak_bytes": 2097185
+        },
+        "msgspec": {
+          "time_s": 0.00318,
+          "peak_bytes": 2220706
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.01667,
+          "peak_bytes": 8967527
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 0.45241,
+          "peak_bytes": 6141386
+        },
+        "orjson": {
+          "time_s": 0.00757,
+          "peak_bytes": 27592308
+        },
+        "msgspec": {
+          "time_s": 0.01074,
+          "peak_bytes": 5528510
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.01859,
+          "peak_bytes": 8967527
+        },
+        "flatwire.decode_array": {
+          "time_s": 0.73516,
+          "peak_bytes": 452184
+        },
+        "orjson": {
+          "time_s": 0.01296,
+          "peak_bytes": 27592308
+        }
+      }
+    },
+    {
+      "shape": "strings",
+      "elements": 50000,
+      "payload_bytes": 9238891,
+      "encode": {
+        "json": {
+          "time_s": 0.13417,
+          "peak_bytes": 21477854
+        },
+        "flatwire.encode": {
+          "time_s": 0.19931,
+          "peak_bytes": 43194546
+        },
+        "flatwire.encode_array": {
+          "time_s": 0.34519,
+          "peak_bytes": 1533
+        },
+        "orjson": {
+          "time_s": 0.03227,
+          "peak_bytes": 16777249
+        },
+        "msgspec": {
+          "time_s": 0.03886,
+          "peak_bytes": 11242639
+        }
+      },
+      "decode_to_list": {
+        "json": {
+          "time_s": 0.15892,
+          "peak_bytes": 45086727
+        },
+        "flatwire.decode_array(list)": {
+          "time_s": 3.4018,
+          "peak_bytes": 30232160
+        },
+        "orjson": {
+          "time_s": 0.07583,
+          "peak_bytes": 138633588
+        },
+        "msgspec": {
+          "time_s": 0.08567,
+          "peak_bytes": 27807711
+        }
+      },
+      "stream_aggregate": {
+        "json": {
+          "time_s": 0.17283,
+          "peak_bytes": 45086727
+        },
+        "flatwire.decode_array": {
+          "time_s": 3.34199,
+          "peak_bytes": 452392
+        },
+        "orjson": {
+          "time_s": 0.05696,
+          "peak_bytes": 138633588
+        }
+      }
+    }
+  ]
+}

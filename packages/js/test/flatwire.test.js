@@ -84,3 +84,13 @@ test('decodeArray enforces maxDepth against deeply nested input', async () => {
     for await (const _ of fw.decodeArray(Readable.from(payload), { maxDepth: 200 })) { /* */ }
   }, /nesting depth/);
 });
+
+test('decodeArray handles multibyte UTF-8 split across chunk boundaries', async () => {
+  const items = Array.from({ length: 500 }, (_, i) => ({ text: `unïcode ✓ with €uros and 🎯 ${i}` }));
+  const bytes = fw.encode(items);
+  // 5-byte chunks guarantee boundaries land inside multibyte sequences.
+  function* tiny() { for (let i = 0; i < bytes.length; i += 5) yield bytes.subarray(i, i + 5); }
+  const out = [];
+  for await (const el of fw.decodeArray(Readable.from(tiny()))) out.push(el);
+  assert.deepStrictEqual(out, items);
+});

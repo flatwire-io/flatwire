@@ -68,3 +68,14 @@ fn decode_array_enforces_max_depth() {
         .unwrap();
     assert!(first.is_err());
 }
+
+#[test]
+fn decode_array_handles_multibyte_utf8() {
+    // Byte-level scanning must not corrupt multibyte UTF-8 in element strings.
+    let items: Vec<_> = (0..500)
+        .map(|i| json!({ "text": format!("unïcode ✓ with €uros and 🎯 {i}") }))
+        .collect();
+    let bytes = encode(&items).unwrap();
+    let out: Vec<_> = decode_array(Cursor::new(bytes)).map(|r| r.unwrap()).collect();
+    assert_eq!(out, items);
+}

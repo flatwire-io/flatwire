@@ -5,6 +5,7 @@ via iterencode; flatwire adds the flat-memory array streaming the stdlib lacks.
 
 from __future__ import annotations
 
+import codecs
 import json
 from typing import Any, BinaryIO, Iterable, Iterator
 
@@ -80,11 +81,24 @@ def decode_array(
     escape = False
     started = False
 
-    def _read() -> str:
+    # An incremental decoder buffers any partial multibyte UTF-8 sequence that
+    # lands on a chunk boundary, so splitting the stream mid-character is safe.
+    _decoder = codecs.getincrementaldecoder("utf-8")()
+
+    def _read():
+        """Return decoded text, or None at true end of stream.
+
+        A chunk that is only a partial multibyte character decodes to "" while
+        the stream is still open; that must be distinguished from real EOF, so
+        EOF is signalled with None rather than an empty string.
+        """
         raw = fp.read(chunk_size)
         if isinstance(raw, bytes):
-            return raw.decode("utf-8")
-        return raw
+            if not raw:
+                # Flush; raises if a partial character was left dangling.
+                return _decoder.decode(b"", final=True) or None
+            return _decoder.decode(raw)
+        return raw if raw else None
 
     while True:
         while pos < len(buf):
@@ -143,7 +157,7 @@ def decode_array(
                 pos += 1
 
         piece = _read()
-        if not piece:
+        if piece is None:
             break
         buf += piece
 

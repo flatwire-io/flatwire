@@ -4,6 +4,8 @@
 // Zero dependencies: built on JSON plus a hand-written streaming array scanner
 // that finds element boundaries without materializing the whole collection.
 
+const { StringDecoder } = require('node:string_decoder');
+
 const COMMA = Buffer.from(',');
 const OPEN = Buffer.from('[');
 const CLOSE = Buffer.from(']');
@@ -64,8 +66,12 @@ async function* decodeArray(readable, { maxDepth = 200 } = {}) {
   let escape = false;
   let started = false;
 
+  // StringDecoder buffers any partial multibyte UTF-8 sequence that lands on a
+  // chunk boundary, so splitting the stream mid-character is safe.
+  const decoder = new StringDecoder('utf8');
+
   for await (const chunk of readable) {
-    buf += Buffer.isBuffer(chunk) ? chunk.toString('utf8') : chunk;
+    buf += Buffer.isBuffer(chunk) ? decoder.write(chunk) : chunk;
     while (pos < buf.length) {
       const ch = buf[pos];
       if (!started) {
