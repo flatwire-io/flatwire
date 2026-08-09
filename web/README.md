@@ -1,14 +1,19 @@
 # flatwire benchmark dashboard
 
-A small, self-contained React dashboard that visualizes flatwire's measured
-benchmark numbers (memory and time, materialized vs streaming, across languages,
-plus the streaming-XML win).
+A small, self-contained set of browser pages:
 
-- **`index.html`** — the whole app. React is loaded from a CDN and the charts are
-  hand-rolled SVG/CSS bars, so there is **no build step and no dependencies**; it
-  runs by opening the file or serving the folder.
-- **`data.json`** — the numbers, taken from `packages/*/bench/REPORT.md`. Update
-  this when benchmarks are re-run.
+- **`index.html`** — dashboard visualizing flatwire's measured benchmark numbers
+  and the cross-language conformance result.
+- **`playground.html`** + **`playground.js`** — an interactive protocol
+  playground: encode JSON to flatwire's canonical MessagePack and inspect any
+  byte stream field-by-field (type tags, frame boundaries, decoded values). The
+  playground codec is byte-identical to what flatwire emits in all six languages.
+- **`data.json`** — the numbers, taken from `packages/*/bench/REPORT.md` and the
+  conformance run.
+
+React (for the dashboard) is loaded from a CDN and the charts are hand-rolled
+SVG/CSS, so there is **no build step and no dependencies**; everything runs by
+opening the files or serving the folder.
 
 ## Run locally
 

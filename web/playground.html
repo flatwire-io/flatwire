@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>flatwire — protocol playground</title>
+  <style>
+    :root {
+      --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+      --muted: #8b949e; --accent: #2f81f7; --green: #3fb950;
+      --int: #d29922; --str: #3fb950; --float: #db61a2; --bool: #a371f7;
+      --null: #8b949e; --cont: #2f81f7;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 20px 80px; }
+    h1 { font-size: 2rem; margin: 0 0 4px; letter-spacing: -0.5px; }
+    .lede { color: var(--muted); margin: 0 0 6px; max-width: 720px; }
+    .nav { margin: 12px 0 20px; display: flex; gap: 8px; }
+    .nav a { background: var(--panel); border: 1px solid var(--border); border-radius: 999px;
+      padding: 4px 12px; font-size: 0.82rem; text-decoration: none; color: var(--muted); }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px 20px; margin: 18px 0; }
+    .card h2 { margin: 0 0 12px; font-size: 1.1rem; }
+    textarea, select, input { background: #0d1117; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
+    textarea { width: 100%; min-height: 90px; resize: vertical; }
+    .controls { display: flex; gap: 10px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+    button { background: #238636; color: #fff; border: 1px solid #2ea043; border-radius: 8px;
+      padding: 8px 16px; cursor: pointer; font-size: 0.88rem; }
+    button.secondary { background: var(--panel); color: var(--text); border-color: var(--border); }
+    .err { color: #f85149; font-size: 0.85rem; margin-top: 8px; white-space: pre-wrap; }
+    .out { margin-top: 12px; }
+    .hex { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem;
+      line-height: 1.7; word-break: break-all; }
+    .hex .b { padding: 1px 2px; border-radius: 3px; cursor: default; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); margin: 8px 0; }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+    table.tree { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    table.tree td { padding: 4px 8px; border-bottom: 1px solid #21262d; vertical-align: top; }
+    table.tree td.range { color: var(--muted); font-family: ui-monospace, monospace; white-space: nowrap; width: 90px; }
+    table.tree td.tag { font-family: ui-monospace, monospace; }
+    .muted { color: var(--muted); }
+    .stat { color: var(--muted); font-size: 0.82rem; margin-top: 8px; }
+    code { background: #0d1117; border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>flatwire protocol playground</h1>
+    <p class="lede">Encode JSON to flatwire's canonical <b>MessagePack</b> wire, or paste raw bytes to inspect them
+      field-by-field — type tags, frame boundaries, and decoded values. Runs entirely in your browser; the codec is
+      byte-identical to what flatwire emits in all six languages.</p>
+    <div class="nav">
+      <a href="./index.html">← Benchmarks</a>
+      <a href="https://github.com/flatwire-io/flatwire">GitHub</a>
+      <a href="https://github.com/flatwire-io/flatwire/blob/main/conformance/RESULTS.md">Conformance</a>
+    </div>
+
+    <div class="card">
+      <h2>Encode → bytes</h2>
+      <p class="muted" style="margin:0 0 8px;font-size:.85rem">A JSON array of elements (each element is one streamed value).</p>
+      <textarea id="jsonIn">[{"id":1,"name":"row-1","ok":true,"tags":["a","b"]},42,-7,3.5,"unïcode ✓",null]</textarea>
+      <div class="controls">
+        <button onclick="doEncode()">Encode to MessagePack</button>
+        <span class="muted" id="encStat"></span>
+      </div>
+      <div id="encErr" class="err"></div>
+      <div id="encOut" class="out"></div>
+    </div>
+
+    <div class="card">
+      <h2>Inspect ← bytes</h2>
+      <p class="muted" style="margin:0 0 8px;font-size:.85rem">Paste a MessagePack byte stream as hex (<code>81 a2 69 64 01</code>) or base64.</p>
+      <textarea id="bytesIn">81 a2 69 64 2a</textarea>
+      <div class="controls">
+        <select id="inputFmt">
+          <option value="hex">hex</option>
+          <option value="base64">base64</option>
+        </select>
+        <button onclick="doInspect()">Inspect</button>
+        <button class="secondary" onclick="fromEncode()">↑ use encoded bytes</button>
+      </div>
+      <div id="inspErr" class="err"></div>
+      <div id="inspOut" class="out"></div>
+    </div>
+  </div>
+
+  <script src="./playground.js"></script>
+  <script>
+    const pg = flatwirePlayground;
+    const TYPE_COLOR = { int: 'var(--int)', str: 'var(--str)', float: 'var(--float)',
+      bool: 'var(--bool)', null: 'var(--null)', array: 'var(--cont)', map: 'var(--cont)' };
+    let lastEncoded = null;
+
+    function legend() {
+      const kinds = [['int','int'],['str','string'],['float','float'],['bool','bool'],['null','null'],['map','map/array']];
+      return '<div class="legend">' + kinds.map(([k,l]) =>
+        `<span><span class="sw" style="background:${TYPE_COLOR[k]}"></span>${l}</span>`).join('') + '</div>';
+    }
+
+    function renderHex(bytes, tokens) {
+      // color each byte by the token that starts at it (header byte) or contains it.
+      const owner = new Array(bytes.length).fill(null);
+      // paint container/scalar header ranges
+      for (const t of tokens) for (let i = t.start; i < t.end; i++) owner[i] = t;
+      let html = '';
+      for (let i = 0; i < bytes.length; i++) {
+        const t = owner[i];
+        const color = t ? TYPE_COLOR[t.type] : 'var(--muted)';
+        const hx = bytes[i].toString(16).padStart(2, '0');
+        const title = t ? `${t.label} (bytes ${t.start}–${t.end - 1})` : '';
+        html += `<span class="b" style="color:${color}" title="${title.replace(/"/g,'&quot;')}">${hx}</span> `;
+      }
+      return `<div class="hex">${html}</div>`;
+    }
+
+    function renderTree(tokens) {
+      let rows = '';
+      for (const t of tokens) {
+        const indent = '&nbsp;&nbsp;'.repeat(t.depth);
+        const color = TYPE_COLOR[t.type];
+        rows += `<tr><td class="range">${t.start}–${t.end - 1}</td>` +
+          `<td class="tag">${indent}<span style="color:${color}">${t.label}</span></td></tr>`;
+      }
+      return `<table class="tree"><tbody>${rows}</tbody></table>`;
+    }
+
+    function doEncode() {
+      const errEl = document.getElementById('encErr');
+      const outEl = document.getElementById('encOut');
+      errEl.textContent = ''; outEl.innerHTML = '';
+      let items;
+      try { items = JSON.parse(document.getElementById('jsonIn').value); }
+      catch (e) { errEl.textContent = 'Invalid JSON: ' + e.message; return; }
+      if (!Array.isArray(items)) { errEl.textContent = 'Top-level value must be a JSON array of elements.'; return; }
+      try {
+        const bytes = pg.encodeArrayMsgpack(items);
+        lastEncoded = bytes;
+        const insp = pg.inspectMsgpack(bytes);
+        document.getElementById('encStat').textContent = `${items.length} elements → ${bytes.length} bytes`;
+        outEl.innerHTML = legend() + renderHex(bytes, insp.tokens) +
+          `<div class="stat">base64: <code>${btoa(String.fromCharCode(...bytes))}</code></div>`;
+      } catch (e) { errEl.textContent = e.message; }
+    }
+
+    function doInspect() {
+      const errEl = document.getElementById('inspErr');
+      const outEl = document.getElementById('inspOut');
+      errEl.textContent = ''; outEl.innerHTML = '';
+      const fmt = document.getElementById('inputFmt').value;
+      let bytes;
+      try {
+        bytes = fmt === 'hex' ? pg.hexToBytes(document.getElementById('bytesIn').value)
+                              : pg.base64ToBytes(document.getElementById('bytesIn').value);
+      } catch (e) { errEl.textContent = 'Could not parse bytes: ' + e.message; return; }
+      try {
+        const insp = pg.inspectMsgpack(bytes);
+        outEl.innerHTML = legend() + renderHex(bytes, insp.tokens) +
+          `<div class="stat">${insp.values.length} top-level value(s), ${bytes.length} bytes</div>` +
+          renderTree(insp.tokens) +
+          `<div class="stat">decoded: <code>${escapeHtml(JSON.stringify(insp.values, bigintReplacer))}</code></div>`;
+      } catch (e) { errEl.textContent = e.message; }
+    }
+
+    function fromEncode() {
+      if (!lastEncoded) { doEncode(); }
+      if (lastEncoded) {
+        document.getElementById('inputFmt').value = 'hex';
+        document.getElementById('bytesIn').value = pg.bytesToHex(lastEncoded);
+        doInspect();
+      }
+    }
+
+    function bigintReplacer(_k, v) { return typeof v === 'bigint' ? v.toString() : v; }
+    function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // Run once on load so the page shows something live.
+    doEncode();
+    doInspect();
+  </script>
+</body>
+</html>

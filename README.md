@@ -141,6 +141,7 @@ flatwire started as a thin streaming layer over each ecosystem's JSON primitives
 - **[Patterns & migration guide](docs/GUIDE.md)** — when to use flatwire, correct usage per ecosystem, anti-patterns, and how to migrate call sites.
 - **[Cross-language benchmark summary](docs/BENCHMARKS.md)** — all six languages on one page, with the honest memory-metric caveats.
 - **[Live benchmark dashboard](https://flatwire-io.github.io/flatwire/)** — an interactive visualization of the measured numbers (source in [`web/`](web/)).
+- **[Protocol playground](https://flatwire-io.github.io/flatwire/playground.html)** — encode JSON to flatwire's canonical MessagePack and inspect any byte stream field-by-field, in the browser.
 - **[Multi-format design](docs/FORMATS.md)** — the JSON → XML → binary roadmap.
 - Per-language reports: [Python](packages/python/bench/REPORT.md) · [Node](packages/js/bench/REPORT.md) · [.NET](packages/dotnet/bench/REPORT.md) · [Rust](packages/rust/bench/REPORT.md) · [Go](packages/go/bench/REPORT.md) · [Java](packages/java/bench/REPORT.md)
 - A **Benchmarks** CI workflow (`.github/workflows/benchmarks.yml`) runs all six on the runners; a **memory regression guard** (`packages/python/bench/guard.py`) runs on every build and fails if streaming stops being flat.
