@@ -4,6 +4,17 @@ All notable changes to flatwire are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project aims to follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- **Roadmap reframed: multi-format streaming is now a goal.** What were
+  previously two non-goals — "JSON only, binary is later/internal" and "thin
+  wrapper, not a serializer" — are now explicit goals. flatwire is evolving into
+  a format-pluggable streaming serializer (JSON today; XML and binary
+  MessagePack/CBOR on the roadmap) behind the same `encode_array`/`decode_array`
+  API, with its own streaming implementation where an ecosystem lacks one. See
+  [docs/FORMATS.md](docs/FORMATS.md).
+
 ## [0.2.1] - 2026-08-08
 
 ### Fixed

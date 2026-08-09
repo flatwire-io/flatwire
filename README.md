@@ -107,16 +107,24 @@ Each package's README has the full per-language signatures.
 
 **v0.2 — small and honest.** The surface is the streaming array pair plus whole-value convenience, on a plain-JSON wire, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. Locally tested here: Python, Node, .NET, Rust. Validated in CI (their toolchains live on the runners): Go, Java.
 
+### Where flatwire is going (goals, not just non-goals)
+
+flatwire started as a thin streaming layer over each ecosystem's JSON primitives. Two things that were previously scoped *out* are now explicit **goals**, because they make the flat-memory guarantee useful in far more places:
+
+1. **Format-pluggable streaming — one API, many formats.** The same `encode_array` / `decode_array` surface will stream **JSON, XML, and binary formats (MessagePack, CBOR)** behind a `format` selector. The flat-memory property is format-independent, and *streaming, flat-memory XML for large collections is something almost no library offers today.*
+2. **A real streaming serializer core, not just a wrapper.** Where an ecosystem's built-in streaming primitive is missing or leaky (e.g. streaming XML of a large array), flatwire provides its own correct-by-default streaming implementation rather than deferring to a non-goal.
+
 ### Roadmap
-- Per-ecosystem benchmark harnesses (BenchmarkDotNet, JMH, `memray`, `go test -benchmem`, criterion) and a head-to-head comparison report vs. the best-configured standard libraries (orjson, msgspec, System.Text.Json source-gen, Jackson streaming, fast-json-stringify), wired into CI as regression guards.
-- A binary wire format for internal service-to-service traffic (MessagePack/protobuf), evaluated with data — external JSON stays JSON.
-- Backpressure-aware helpers and framework adapters (ASP.NET, Express/Fastify, FastAPI).
+- **Multi-format core:** `format="json"` (today) → `"xml"` → `"msgpack"`/`"cbor"`. Binary keeps flat memory *and* shrinks bytes — measured, not assumed. ([design](docs/FORMATS.md))
+- **Benchmarks for all six languages**, wired into CI as regression guards, with a comparison vs each ecosystem's best-configured standard libraries (orjson, msgspec, System.Text.Json source-gen, Jackson streaming, fast-json-stringify, `bytedance/sonic`).
+- **A benchmark visualization dashboard** (React) rendering the measured memory/time results.
+- Typed streaming decode (`decode_array::<T>()`), backpressure-aware helpers, and framework adapters (ASP.NET, Express/Fastify, FastAPI).
 
-## Design & non-goals
+## Design principles
 
-- Wire format is **not** changed for public APIs — JSON stays JSON. A binary format is a *later, internal-only* option, evaluated on measured savings.
-- flatwire is a **thin, correct-by-default streaming layer**, not a new serializer engine — it builds on each ecosystem's best-supported streaming primitives (`Utf8JsonWriter`/`DeserializeAsyncEnumerable`, Jackson streaming, `encoding/json` decoder, `serde_json` readers).
-- It does not rewrite your domain models, HTTP framework, or transport.
+- **Wire-format compatible by default.** JSON output stays byte-compatible with each ecosystem's standard serializer, so nothing downstream changes. Additional formats (XML, MessagePack, CBOR) are opt-in via the `format` selector — you choose when to use them.
+- **Streaming and correct by default.** flatwire builds on each ecosystem's best streaming primitive where one exists (`Utf8JsonWriter`/`DeserializeAsyncEnumerable`, Jackson streaming, `encoding/json`, `serde_json`), and provides its own streaming implementation where one doesn't — so the flat-memory guarantee holds regardless of format.
+- **It does not rewrite your domain models, HTTP framework, or transport.**
 
 ## Docs & benchmarks
 
