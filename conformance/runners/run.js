@@ -70,6 +70,7 @@ async function main() {
     results.cases[c.name] = entry;
   }
   const outPath = path.join(ROOT, 'results', 'node.json');
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
   let passed = 0, total = 0;
   for (const c of Object.values(results.cases)) for (const f of Object.values(c.formats)) { total++; if (f.roundtrip) passed++; }

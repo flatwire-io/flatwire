@@ -49,6 +49,7 @@ def main() -> None:
         results["cases"][name] = entry
 
     out_path = ROOT / "results" / "python.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
     passed = sum(
         1 for c in results["cases"].values() for f in c["formats"].values() if f.get("roundtrip")
