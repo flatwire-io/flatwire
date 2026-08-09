@@ -52,6 +52,10 @@ disables it.
 
 Apache-2.0 — see the [repository](https://github.com/flatwire-io/flatwire).
 
+## Benchmarks
+
+See the [live benchmark dashboard](https://flatwire-io.github.io/flatwire/) and the [cross-language summary](https://github.com/flatwire-io/flatwire/blob/main/docs/BENCHMARKS.md).
+
 ## Changelog
 
 See [CHANGELOG.md](https://github.com/flatwire-io/flatwire/blob/main/CHANGELOG.md).

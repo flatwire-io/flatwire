@@ -46,6 +46,7 @@ Measured (`bench/xml_bench.py`): parsing a 12 MB document with
 ~4 MB (~97% lower); streaming encode is flat at ~900 bytes.
 
 See the [monorepo README](https://github.com/flatwire-io/flatwire) for the
-cross-language story and benchmarks.
+cross-language story, and the [live benchmark dashboard](https://flatwire-io.github.io/flatwire/)
+for the measured numbers.
 
 Apache-2.0.

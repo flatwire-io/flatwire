@@ -45,7 +45,8 @@ async function decodeFrom(readable) {
 async function encodeArray(items, writable, opts = {}) {
   const format = opts.format || 'json';
   if (format === 'xml') return require('./xml.js').encodeArray(items, writable, opts);
-  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json' or 'xml')`);
+  if (format === 'msgpack') return require('./msgpack.js').encodeArray(items, writable, opts);
+  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json', 'xml', or 'msgpack')`);
   await write(writable, OPEN);
   let count = 0;
   for await (const item of items) {
@@ -62,7 +63,8 @@ async function encodeArray(items, writable, opts = {}) {
 function decodeArray(readable, opts = {}) {
   const format = opts.format || 'json';
   if (format === 'xml') return require('./xml.js').decodeArray(readable, opts);
-  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json' or 'xml')`);
+  if (format === 'msgpack') return require('./msgpack.js').decodeArray(readable, opts);
+  if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json', 'xml', or 'msgpack')`);
   return jsonDecodeArray(readable, opts);
 }
 

@@ -130,3 +130,34 @@ test('unknown format throws', async () => {
   const w = sink();
   await assert.rejects(async () => { await fw.encodeArray([1], w, { format: 'yaml' }); });
 });
+
+test('msgpack encodeArray/decodeArray round-trips with types', async () => {
+  const items = [
+    { id: 1, name: 'row-1', ok: true, tags: ['a', 'b'], score: 3.5, note: null },
+    42, -7, 300, -300, 100000, 'unïcode ✓ €uro 🎯', [1, 2, 3], null, true, 3.14159, -1.5,
+  ];
+  const w = sink();
+  const n = await fw.encodeArray(items, w, { format: 'msgpack' });
+  assert.strictEqual(n, items.length);
+  const out = [];
+  for await (const el of fw.decodeArray(Readable.from(w.collected()), { format: 'msgpack' })) out.push(el);
+  assert.deepStrictEqual(out, items);
+});
+
+test('msgpack is more compact than JSON', async () => {
+  const items = Array.from({ length: 1000 }, (_, i) => ({ id: i, name: `row-${i}`, ok: i % 2 === 0 }));
+  const jw = sink(); await fw.encodeArray(items, jw, { format: 'json' });
+  const mw = sink(); await fw.encodeArray(items, mw, { format: 'msgpack' });
+  assert.ok(mw.collected().length < jw.collected().length);
+});
+
+test('msgpack decodes across tiny chunks', async () => {
+  const items = Array.from({ length: 2000 }, (_, i) => ({ id: i, vals: [i, i + 1, i + 2] }));
+  const w = sink();
+  await fw.encodeArray(items, w, { format: 'msgpack' });
+  const bytes = w.collected();
+  function* tiny() { for (let i = 0; i < bytes.length; i += 5) yield bytes.subarray(i, i + 5); }
+  const out = [];
+  for await (const el of fw.decodeArray(Readable.from(tiny()), { format: 'msgpack' })) out.push(el);
+  assert.deepStrictEqual(out, items);
+});

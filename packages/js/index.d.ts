@@ -14,8 +14,8 @@ export function decodeFrom(readable: Readable): Promise<unknown>;
 
 /** Options for the streaming array helpers. */
 export interface ArrayOptions {
-  /** Wire format: "json" (default) or "xml". */
-  format?: 'json' | 'xml';
+  /** Wire format: "json" (default), "xml", or "msgpack" (binary). */
+  format?: 'json' | 'xml' | 'msgpack';
   /** XML only: the wrapper element name (default "items"). */
   root?: string;
   /** XML only: the per-element tag name (default "item"). */
