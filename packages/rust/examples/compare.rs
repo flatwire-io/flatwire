@@ -1,7 +1,7 @@
 //! Head-to-head Rust benchmark: `serde_json` materialized vs flatwire streaming,
 //! measuring BOTH peak heap bytes and wall-clock time.
 //!
-//! Peak memory is measured with a custom tracking global allocator - the honest
+//! Peak memory is measured with a custom tracking global allocator - the accurate
 //! way in Rust, which has no built-in per-operation allocation counter. The
 //! allocator records current and peak live bytes; each scenario resets the peak
 //! to the current baseline, runs once, and reports the delta.

@@ -218,7 +218,7 @@ All notable changes to flatwire are documented here. The format follows
 ### Added
 - Python head-to-head benchmark (`bench/compare.py`) and comparison report
   (`bench/REPORT.md`) measuring peak memory and time against `json`, `orjson`,
-  and `msgspec`, including the honest memory-for-time trade-off of streaming.
+  and `msgspec`, including the measured memory-for-time trade-off of streaming.
 
 ## [0.2.0] - 2026-08-08
 

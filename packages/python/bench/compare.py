@@ -7,7 +7,7 @@ Compared:
   - msgspec                - typed, streaming-friendly serializer
   - flatwire               - streaming; encode_array / decode_array
 
-The point of the table is honesty: flatwire does not beat orjson/msgspec on raw
+The point of the table is balance: flatwire does not beat orjson/msgspec on raw
 throughput for whole-value work - those are heavily optimized C extensions. What
 flatwire changes is PEAK MEMORY for large collections, because it never holds the
 whole array at once. Both axes are reported so the trade-off is explicit.

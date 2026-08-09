@@ -71,9 +71,30 @@ def main() -> int:
         print("Update the README Status/Shipped/Roadmap for the new release.", file=sys.stderr)
         return 1
 
+    # The Java package README hardcodes the version in its Maven/Gradle install
+    # snippets (Maven coordinates require an explicit version), so it silently
+    # goes stale on release. Every `flatwire:X.Y.Z` / `<version>X.Y.Z</version>`
+    # it mentions must match the current version.
+    java_readme_path = "packages/java/README.md"
+    java_readme = (ROOT / java_readme_path).read_text(encoding="utf-8")
+    stale = [
+        m
+        for m in re.findall(r"flatwire:(\d+\.\d+\.\d+)", java_readme)
+        + re.findall(r"<version>(\d+\.\d+\.\d+)</version>", java_readme)
+        if m != version
+    ]
+    if stale:
+        print(
+            f"\nERROR: {java_readme_path} install snippet references {sorted(set(stale))}, "
+            f"expected {version}.",
+            file=sys.stderr,
+        )
+        print("Update the Maven/Gradle version in the Java README.", file=sys.stderr)
+        return 1
+
     print(
         f"\nOK: all packages at {version}, CHANGELOG has a matching entry, "
-        f"README Status references v{major_minor}."
+        f"README Status references v{major_minor}, Java README install version matches."
     )
     return 0
 
