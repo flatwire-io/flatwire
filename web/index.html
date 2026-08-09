@@ -180,6 +180,17 @@
             fmt={humanBytes}
             foot="Parsing a 12 MB XML document with ElementTree peaks at ~125 MB; flatwire streaming holds ~4 MB — a ~97% reduction. Streaming, flat-memory XML for large collections is a rare capability." />
 
+          {data.msgpack && (
+            <ComparisonCard
+              title="Binary MessagePack — bytes on the wire vs JSON (Python)"
+              sub={data.msgpack.note}
+              rows={data.msgpack.rows}
+              keys={["json", "msgpack"]}
+              colors={[COLORS.materialized, COLORS.stream2]}
+              fmt={humanBytes}
+              foot="flatwire's streaming MessagePack is wire-compatible with the reference library, ~11–13% smaller than JSON on this string-heavy shape (more on numeric data) — with the same flat-memory streaming." />
+          )}
+
           <footer>
             Numbers are reproducible from the repo — see <code>packages/*/bench/</code> and <code>docs/BENCHMARKS.md</code>. Apache-2.0.
           </footer>

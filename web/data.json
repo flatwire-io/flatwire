@@ -44,5 +44,14 @@
       { "size": "10k (~2.4 MB)", "dom": 27158118,  "streaming": 1015398 },
       { "size": "50k (~12 MB)",  "dom": 131364454, "streaming": 4194304 }
     ]
+  },
+  "msgpack": {
+    "unit": "bytes",
+    "note": "Python: bytes on the wire, JSON vs flatwire's streaming MessagePack (binary), wire-compatible with the reference msgpack library. Numeric-heavy payloads save more than this string-heavy shape.",
+    "rows": [
+      { "size": "1k rows",  "json": 145203, "msgpack": 128512 },
+      { "size": "10k rows", "json": 1468006, "msgpack": 1258291 },
+      { "size": "50k rows", "json": 7549747, "msgpack": 6501171 }
+    ]
   }
 }
