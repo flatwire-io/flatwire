@@ -68,7 +68,7 @@ mavenPublishing {
         developers {
             developer {
                 id = 'flatwire-io'
-                name = 'The flatwire authors'
+                name = 'Parag Sawant'
                 url = 'https://github.com/flatwire-io'
             }
         }

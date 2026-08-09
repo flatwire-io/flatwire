@@ -155,6 +155,11 @@ Each package's README has the full per-language signatures.
 - Per-language reports: [Python](packages/python/bench/REPORT.md) · [Node](packages/js/bench/REPORT.md) · [.NET](packages/dotnet/bench/REPORT.md) · [Rust](packages/rust/bench/REPORT.md) · [Go](packages/go/bench/REPORT.md) · [Java](packages/java/bench/REPORT.md)
 - A **Benchmarks** CI workflow (`.github/workflows/benchmarks.yml`) runs all six on the runners; a **memory regression guard** (`packages/python/bench/guard.py`) runs on every build and fails if streaming stops being flat.
 
+## Author
+
+flatwire is built and maintained by **[Parag Sawant](https://www.linkedin.com/in/paragsawant/)**
+([GitHub](https://github.com/paragpsawant)). Issues and pull requests are welcome.
+
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE). © 2026 The flatwire authors.
+Apache-2.0 — see [LICENSE](LICENSE). © 2026 Parag Sawant.
