@@ -1,0 +1,68 @@
+name: Publish (manual, per ecosystem)
+
+# Manually publish one ecosystem at a time as its registry credentials land.
+# Pick the target from the dropdown when running the workflow.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Which ecosystem to publish
+        required: true
+        type: choice
+        options: [npm, pypi, nuget]
+
+permissions:
+  contents: read
+
+jobs:
+  npm:
+    if: ${{ inputs.target == 'npm' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # provenance
+    defaults:
+      run:
+        working-directory: packages/js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  pypi:
+    if: ${{ inputs.target == 'pypi' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # PyPI Trusted Publishing (OIDC)
+    defaults:
+      run:
+        working-directory: packages/python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build
+      - run: python -m build
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: packages/python/dist
+
+  nuget:
+    if: ${{ inputs.target == 'nuget' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/dotnet/FlatWire
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - run: dotnet pack -c Release -o out
+      - run: dotnet nuget push "out/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
