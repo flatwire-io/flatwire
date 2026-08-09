@@ -69,7 +69,7 @@ flatwire is **not** a faster serializer than the optimized C extensions — it t
 | `orjson` (materialize then iterate) | 170.5 MB | ~0.65× |
 | **flatwire** (stream, discard) | **194 KB** | ~30× |
 
-So: use `orjson`/`msgspec` when you need the whole collection resident and want speed; use flatwire when you're streaming a large array and **memory is the constraint**. Per-ecosystem harnesses for the other five languages are on the roadmap.
+So: use `orjson`/`msgspec` when you need the whole collection resident and want speed; use flatwire when you're streaming a large array and **memory is the constraint**. The other five languages have their own measured harnesses too — see the [cross-language benchmark summary](docs/BENCHMARKS.md).
 
 ### The numbers a service owner feels
 
@@ -145,7 +145,7 @@ Each package's README has the full per-language signatures.
 - **[Cross-language benchmark summary](docs/BENCHMARKS.md)** — all six languages on one page, with the memory-metric caveats.
 - **[Live benchmark dashboard](https://flatwire-io.github.io/flatwire/)** — an interactive visualization of the measured numbers (source in [`web/`](web/)).
 - **[Protocol playground](https://flatwire-io.github.io/flatwire/playground.html)** — encode JSON to flatwire's canonical MessagePack and inspect any byte stream field-by-field, in the browser.
-- **[Multi-format design](docs/FORMATS.md)** — the JSON → XML → binary roadmap.
+- **[Multi-format design](docs/FORMATS.md)** — how the JSON / XML / MessagePack / CBOR wires share one streaming API.
 - **[Command-line tool](docs/CLI.md)** — `flatwire cat` / `convert` / `stats`: a streaming Swiss-army knife over all four wire formats, constant memory on any file size.
 - **[Architecture recipes](docs/RECIPES.md)** — copy-paste production patterns: cloud storage → Postgres/ClickHouse/Parquet, Kafka/NATS message streams, and LLM token streams with checked failure semantics.
 - **[Transports](docs/TRANSPORTS.md)** — flatwire as a pure data layer: move a stream over HTTP/WebSocket/QUIC/TCP/Unix-socket/shared-memory without changing payload code.
