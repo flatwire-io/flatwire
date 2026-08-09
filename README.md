@@ -129,11 +129,10 @@ flatwire started as a thin streaming layer over each ecosystem's JSON primitives
 ## Docs & benchmarks
 
 - **[Patterns & migration guide](docs/GUIDE.md)** — when to use flatwire, correct usage per ecosystem, anti-patterns, and how to migrate call sites.
-- **[Python benchmark report](packages/python/bench/REPORT.md)** — honest head-to-head vs `json` / `orjson` / `msgspec` (memory *and* time).
-- **[Node benchmark report](packages/js/bench/REPORT.md)** — child-process peak-RSS methodology; streaming decode from disk.
-- **[Rust benchmark report](packages/rust/bench/REPORT.md)** — tracking-allocator numbers; streaming encode allocates 0 bytes, decode flat at 192 B.
-- **[.NET benchmark report](packages/dotnet/bench/REPORT.md)** — peak-live-heap methodology; streaming encode ~5 KB flat, decode ~86% lower peak and faster.
-- A CI job runs a **memory regression guard** (`packages/python/bench/guard.py`) on every build, failing if streaming stops being flat.
+- **[Cross-language benchmark summary](docs/BENCHMARKS.md)** — all six languages on one page, with the honest memory-metric caveats.
+- **[Multi-format design](docs/FORMATS.md)** — the JSON → XML → binary roadmap.
+- Per-language reports: [Python](packages/python/bench/REPORT.md) · [Node](packages/js/bench/REPORT.md) · [.NET](packages/dotnet/bench/REPORT.md) · [Rust](packages/rust/bench/REPORT.md) · [Go](packages/go/bench/REPORT.md) · [Java](packages/java/bench/REPORT.md)
+- A **Benchmarks** CI workflow (`.github/workflows/benchmarks.yml`) runs all six on the runners; a **memory regression guard** (`packages/python/bench/guard.py`) runs on every build and fails if streaming stops being flat.
 
 ## License
 
