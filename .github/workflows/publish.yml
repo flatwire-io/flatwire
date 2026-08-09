@@ -10,7 +10,7 @@ on:
         description: Which ecosystem to publish
         required: true
         type: choice
-        options: [npm, pypi, nuget]
+        options: [npm, pypi, nuget, maven]
 
 permissions:
   contents: read
@@ -65,3 +65,22 @@ jobs:
           dotnet-version: "8.0.x"
       - run: dotnet pack -c Release -o out
       - run: dotnet nuget push "out/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+  maven:
+    if: ${{ inputs.target == 'maven' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/java
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: gradle publishAndReleaseToMavenCentral --no-daemon --no-configuration-cache
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}

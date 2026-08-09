@@ -1,17 +1,15 @@
 plugins {
     id 'java-library'
-    id 'maven-publish'
+    id 'com.vanniktech.maven.publish' version '0.29.0'
 }
 
-group = 'io.github.flatwireio'
+group = 'io.github.flatwire-io'
 version = '0.1.0'
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
-    withSourcesJar()
-    withJavadocJar()
 }
 
 repositories {
@@ -29,22 +27,35 @@ test {
     useJUnitPlatform()
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            artifactId = 'flatwire'
-            from components.java
-            pom {
-                name = 'flatwire'
-                description = 'Streaming JSON serialization that keeps memory flat and time linear.'
-                url = 'https://github.com/flatwire-io/flatwire'
-                licenses {
-                    license {
-                        name = 'Apache-2.0'
-                        url = 'https://www.apache.org/licenses/LICENSE-2.0'
-                    }
-                }
+import com.vanniktech.maven.publish.SonatypeHost
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
+    signAllPublications()
+
+    coordinates('io.github.flatwire-io', 'flatwire', '0.1.0')
+
+    pom {
+        name = 'flatwire'
+        description = 'Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element.'
+        url = 'https://github.com/flatwire-io/flatwire'
+        licenses {
+            license {
+                name = 'Apache-2.0'
+                url = 'https://www.apache.org/licenses/LICENSE-2.0'
             }
+        }
+        developers {
+            developer {
+                id = 'flatwire-io'
+                name = 'The flatwire authors'
+                url = 'https://github.com/flatwire-io'
+            }
+        }
+        scm {
+            url = 'https://github.com/flatwire-io/flatwire'
+            connection = 'scm:git:https://github.com/flatwire-io/flatwire.git'
+            developerConnection = 'scm:git:ssh://git@github.com/flatwire-io/flatwire.git'
         }
     }
 }
