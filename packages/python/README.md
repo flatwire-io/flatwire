@@ -93,4 +93,21 @@ See the [monorepo README](https://github.com/flatwire-io/flatwire) for the
 cross-language story, and the [live benchmark dashboard](https://flatwire-io.github.io/flatwire/)
 for the measured numbers.
 
+## Command-line tool
+
+Installing the package also installs a `flatwire` CLI — a streaming Swiss-army
+knife that processes files of any size in flat memory, across all four wire
+formats:
+
+```bash
+flatwire cat data.json            # stream elements, one JSON line each
+flatwire convert data.json data.cbor   # stream-convert json -> cbor
+flatwire stats data.cbor          # element count, throughput, largest element
+```
+
+See [docs/CLI.md](https://github.com/flatwire-io/flatwire/blob/main/docs/CLI.md)
+for the full reference, and
+[docs/RECIPES.md](https://github.com/flatwire-io/flatwire/blob/main/docs/RECIPES.md)
+for production patterns (S3→Postgres, Kafka/NATS, LLM token streams).
+
 Apache-2.0.

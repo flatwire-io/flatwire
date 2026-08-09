@@ -6,6 +6,36 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-09
+
+### Added
+- **`flatwire` command-line tool** (ships with the Python package via a
+  `console_scripts` entry point, so `pip install flatwire` puts `flatwire` on
+  your `PATH`). Three subcommands, all built on the flat-memory streaming core so
+  they process files of any size in constant memory, across all four wire formats
+  (json/xml/msgpack/cbor):
+  - `flatwire cat FILE` — stream elements, one JSON line each (`-n` to limit,
+    `--pretty`, stdin via `-`).
+  - `flatwire convert IN OUT --to FMT` — stream-convert between formats; the lazy
+    decoder feeds the encoder one element at a time, so a multi-GB file converts
+    without being fully in memory.
+  - `flatwire stats FILE` — element count, throughput, and largest-element size,
+    streamed (`--json` for a machine-readable report).
+
+  Format is inferred from the file extension when not given. See
+  [docs/CLI.md](docs/CLI.md).
+- **Architecture recipes** ([docs/RECIPES.md](docs/RECIPES.md)) — copy-paste
+  production patterns using the real API: cloud storage → Postgres/ClickHouse/
+  Parquet, Kafka/NATS message-stream processing, and LLM/event token streams with
+  checked failure semantics.
+
+### Notes
+- This release is functionally **Python-package + docs**: the CLI lives in the
+  Python package and the recipes are documentation. All six packages are bumped
+  to 0.9.0 to keep the cross-language versions in lockstep (enforced by the
+  docs-consistency CI guard); the other five language libraries are unchanged
+  from 0.8.0.
+
 ## [0.8.0] - 2026-08-09
 
 ### Added
