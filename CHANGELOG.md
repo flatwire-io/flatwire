@@ -17,6 +17,10 @@ All notable changes to flatwire are documented here. The format follows
 - **Transport guide** ([docs/TRANSPORTS.md](docs/TRANSPORTS.md)) — flatwire as a
   pure data layer with working recipes for HTTP/WebSocket/QUIC/TCP/Unix-socket/
   shared-memory.
+- **Backpressure & cancellation (Node)** — the encoders honor the writer's
+  `drain` contract so a slow consumer throttles the producer (not the socket
+  buffer), plus `AbortSignal` cancellation and error-propagation. See
+  [docs/BACKPRESSURE.md](docs/BACKPRESSURE.md).
 - **Protocol playground** ([web/playground.html](web/playground.html)) — encode
   in all three formats live with a size comparison, and inspect any MessagePack
   byte stream field-by-field, in the browser.

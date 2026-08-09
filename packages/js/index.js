@@ -19,11 +19,30 @@ function decode(data) {
   return JSON.parse(text);
 }
 
-// Write helper that respects backpressure.
+// Backpressure-aware write: honor the stream's highWaterMark. write() returns
+// false when the internal buffer is full; we then wait for 'drain' before
+// producing more, so a slow consumer throttles production instead of letting
+// bytes pile up in the socket/file buffer. Rejects on stream 'error'.
 function write(writable, chunk) {
   return new Promise((resolve, reject) => {
-    writable.write(chunk, (err) => (err ? reject(err) : resolve()));
+    const onError = (e) => { writable.removeListener('error', onError); reject(e); };
+    writable.once('error', onError);
+    const ok = writable.write(chunk);
+    if (ok) {
+      writable.removeListener('error', onError);
+      resolve();
+    } else {
+      writable.once('drain', () => { writable.removeListener('error', onError); resolve(); });
+    }
   });
+}
+
+function checkAborted(signal) {
+  if (signal && signal.aborted) {
+    const err = new Error('flatwire: stream aborted');
+    err.name = 'AbortError';
+    throw err;
+  }
 }
 
 async function encodeTo(value, writable) {
@@ -39,17 +58,20 @@ async function decodeFrom(readable) {
 }
 
 // Stream a large collection element-by-element. `opts.format` selects the wire
-// format: "json" (default) or "xml". Format-specific options (e.g. root for XML)
-// are passed through. Accepts any sync or async iterable; peak memory is bounded
-// by the largest single element.
+// format ("json" default, "xml", "msgpack"). `opts.signal` (an AbortSignal)
+// cancels the stream mid-flight. Honors writer backpressure; peak memory is
+// bounded by one element.
 async function encodeArray(items, writable, opts = {}) {
   const format = opts.format || 'json';
   if (format === 'xml') return require('./xml.js').encodeArray(items, writable, opts);
   if (format === 'msgpack') return require('./msgpack.js').encodeArray(items, writable, opts);
   if (format !== 'json') throw new Error(`unknown format '${format}' (expected 'json', 'xml', or 'msgpack')`);
+  const signal = opts.signal;
+  checkAborted(signal);
   await write(writable, OPEN);
   let count = 0;
   for await (const item of items) {
+    checkAborted(signal);
     if (count) await write(writable, COMMA);
     await write(writable, Buffer.from(JSON.stringify(item), 'utf8'));
     count += 1;

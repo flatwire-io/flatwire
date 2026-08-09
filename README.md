@@ -146,6 +146,7 @@ flatwire started as a thin streaming layer over each ecosystem's JSON primitives
 - **[Multi-format design](docs/FORMATS.md)** — the JSON → XML → binary roadmap.
 - **[Transports](docs/TRANSPORTS.md)** — flatwire as a pure data layer: move a stream over HTTP/WebSocket/QUIC/TCP/Unix-socket/shared-memory without changing payload code.
 - **[Failure semantics](docs/FAILURE.md)** — checked streams that tell clean completion, producer error, and truncation apart, in-band, with flat memory.
+- **[Backpressure & cancellation](docs/BACKPRESSURE.md)** — encoders honor the writer's backpressure so a slow consumer throttles the producer, plus `AbortSignal` cancellation.
 - Per-language reports: [Python](packages/python/bench/REPORT.md) · [Node](packages/js/bench/REPORT.md) · [.NET](packages/dotnet/bench/REPORT.md) · [Rust](packages/rust/bench/REPORT.md) · [Go](packages/go/bench/REPORT.md) · [Java](packages/java/bench/REPORT.md)
 - A **Benchmarks** CI workflow (`.github/workflows/benchmarks.yml`) runs all six on the runners; a **memory regression guard** (`packages/python/bench/guard.py`) runs on every build and fails if streaming stops being flat.
 

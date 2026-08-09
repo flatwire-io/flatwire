@@ -128,7 +128,13 @@ function parseAttrs(head) {
 
 async function encodeArray(items, writable, { root = 'items' } = {}) {
   const write = (chunk) =>
-    new Promise((resolve, reject) => writable.write(chunk, (e) => (e ? reject(e) : resolve())));
+    new Promise((resolve, reject) => {
+      const onError = (e) => { writable.removeListener('error', onError); reject(e); };
+      writable.once('error', onError);
+      const ok = writable.write(chunk);
+      if (ok) { writable.removeListener('error', onError); resolve(); }
+      else writable.once('drain', () => { writable.removeListener('error', onError); resolve(); });
+    });
   await write(Buffer.from(`<?xml version="1.0" encoding="UTF-8"?><${root}>`, 'utf8'));
   let count = 0;
   for await (const v of items) {

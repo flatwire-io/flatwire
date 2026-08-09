@@ -103,7 +103,13 @@ function encodeMapHeader(n, chunks) {
 
 async function encodeArray(items, writable) {
   const write = (chunk) =>
-    new Promise((resolve, reject) => writable.write(chunk, (e) => (e ? reject(e) : resolve())));
+    new Promise((resolve, reject) => {
+      const onError = (e) => { writable.removeListener('error', onError); reject(e); };
+      writable.once('error', onError);
+      const ok = writable.write(chunk);
+      if (ok) { writable.removeListener('error', onError); resolve(); }
+      else writable.once('drain', () => { writable.removeListener('error', onError); resolve(); });
+    });
   let count = 0;
   for await (const item of items) {
     const chunks = [];

@@ -22,6 +22,8 @@ export interface ArrayOptions {
   item?: string;
   /** JSON only: max nesting depth before the decoder rejects input (default 200; 0 disables). */
   maxDepth?: number;
+  /** Encode only: an AbortSignal to cancel the stream mid-flight. */
+  signal?: AbortSignal;
 }
 
 /**

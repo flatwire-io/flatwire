@@ -131,6 +131,40 @@ test('unknown format throws', async () => {
   await assert.rejects(async () => { await fw.encodeArray([1], w, { format: 'yaml' }); });
 });
 
+test('encodeArray honors writer backpressure (slow consumer throttles producer)', async () => {
+  // A writable with a tiny highWaterMark that drains slowly. If flatwire respects
+  // backpressure, the producer pauses and the number of in-flight (unacked)
+  // chunks stays small instead of the whole array buffering up.
+  const { Writable } = require('node:stream');
+  let buffered = 0;
+  let maxBuffered = 0;
+  const slow = new Writable({
+    highWaterMark: 16,
+    write(_chunk, _enc, cb) {
+      buffered++; maxBuffered = Math.max(maxBuffered, buffered);
+      setTimeout(() => { buffered--; cb(); }, 0); // drain asynchronously
+    },
+  });
+  const items = Array.from({ length: 500 }, (_, i) => ({ id: i, payload: 'x'.repeat(64) }));
+  await fw.encodeArray(items, slow, { format: 'msgpack' });
+  // With backpressure honored, only a bounded number of chunks are ever in flight.
+  assert.ok(maxBuffered <= 5, `expected bounded in-flight chunks, saw ${maxBuffered}`);
+});
+
+test('encodeArray can be cancelled mid-stream with an AbortSignal', async () => {
+  const ac = new AbortController();
+  let produced = 0;
+  function* rows() {
+    for (let i = 0; i < 1000; i++) { produced++; if (i === 10) ac.abort(); yield { id: i }; }
+  }
+  const w = sink();
+  await assert.rejects(
+    () => fw.encodeArray(rows(), w, { format: 'json', signal: ac.signal }),
+    (e) => e.name === 'AbortError');
+  // Production stopped promptly after the abort, not after all 1000 rows.
+  assert.ok(produced < 100, `expected early stop, produced ${produced}`);
+});
+
 test('msgpack encodeArray/decodeArray round-trips with types', async () => {
   const items = [
     { id: 1, name: 'row-1', ok: true, tags: ['a', 'b'], score: 3.5, note: null },
