@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Large JSON responses hold the whole payload in memory. They don't have to.</title>
+<meta name="author" content="Parag Sawant">
+<meta name="description" content="A tiny streaming serializer for large collections — one API in six languages, with byte-for-byte identical output across Go, Rust, Python, Node, .NET, and Java.">
+<link rel="canonical" href="https://flatwire-io.github.io/flatwire/blog-streaming.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Large JSON responses hold the whole payload in memory. They don't have to.">
+<meta property="og:description" content="One streaming serializer, six languages, byte-for-byte identical output.">
+<meta property="og:image" content="https://flatwire-io.github.io/flatwire/flatwire-hero.png">
+<style>
+  body{max-width:740px;margin:0 auto;padding:48px 22px 96px;
+    font-family:Georgia,'Times New Roman',serif;color:#242424;line-height:1.7;font-size:19px;}
+  h1{font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:38px;line-height:1.2;letter-spacing:-0.02em;margin:0 0 10px;}
+  h2{font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:26px;line-height:1.25;letter-spacing:-0.01em;margin:44px 0 12px;}
+  .sub{font-style:italic;color:#6b6b6b;font-size:21px;margin:0 0 26px;}
+  p{margin:0 0 20px;}
+  ul,ol{margin:0 0 20px;padding-left:26px;}
+  li{margin:0 0 10px;}
+  a{color:#1a8917;}
+  code{font-family:'SFMono-Regular',Consolas,'JetBrains Mono',monospace;font-size:15px;
+    background:#f2f2f2;padding:2px 5px;border-radius:4px;}
+  pre{background:#f7f7f7;border:1px solid #e6e6e6;border-radius:8px;padding:16px 18px;overflow-x:auto;margin:0 0 22px;}
+  pre code{background:none;padding:0;font-size:14px;line-height:1.5;white-space:pre;}
+  blockquote{border-left:3px solid #242424;margin:0 0 22px;padding:6px 0 6px 22px;
+    font-size:26px;font-style:italic;font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#242424;}
+  figure{margin:0 0 28px;}
+  img{max-width:100%;height:auto;border-radius:8px;}
+  figcaption{font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;color:#6b6b6b;text-align:center;margin-top:8px;}
+  hr{border:none;border-top:1px solid #e6e6e6;margin:40px 0;}
+  .byline{font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px;color:#6b6b6b;}
+</style>
+</head>
+<body>
+<article>
+
+<h1>Large JSON responses hold the whole payload in memory. They don't have to.</h1>
+<p class="sub">A tiny streaming serializer for large collections — one API in six languages, with byte-for-byte identical output across Go, Rust, Python, Node, .NET, and Java.</p>
+
+<figure>
+  <img src="https://flatwire-io.github.io/flatwire/flatwire-hero.png" alt="flatwire: the whole response used to live in memory; now only one row does. 12.7 MB / 50k rows streamed one element at a time, 36.5 MB materialize vs 200 KB flatwire — 183x less memory.">
+</figure>
+
+<p>This started with a pager alert, the way these things usually do.</p>
+
+<p>We had an endpoint that returned a list. Most days the list was a few hundred rows and nobody thought about it. Then a customer with a lot of data hit it, the list was ~50,000 rows, and the service fell over — not because the query was slow, not because the network was slow, but because the handler built the <em>entire</em> response as one giant object in memory before a single byte went out the door. Multiply that by a handful of concurrent requests and the pod hit its memory limit and got killed.</p>
+
+<p>The fix in the moment was the usual one: a paginated endpoint, a <code>LIMIT</code>, a stern comment. But it nagged at me, because the shape of the bug is everywhere. Almost every web service, in almost every language, serializes and deserializes large object graphs on hot paths, and the idiomatic way to do it — <code>json.dumps(...)</code>, <code>JSON.stringify(...)</code>, <code>JsonSerializer.Serialize(...)</code> — holds several multiples of the payload in memory during a single operation. The whole thing becomes one big string before it reaches the socket. Under load that compounds: N requests, each holding a full copy.</p>
+
+<p>The annoying part is that the <em>streaming</em> primitive already exists in every ecosystem. Python has <code>ijson</code>. Node has <code>stream-json</code>. .NET has <code>DeserializeAsyncEnumerable</code>. Go has <code>json.Decoder</code>. Rust has <code>serde_json::StreamDeserializer</code>. Java has Jackson's streaming parser. The tools are there. They're just fiddly enough, and different enough per language, that nobody reaches for them until after the incident.</p>
+
+<p>So I set out to build the thing I wished existed: <strong>one tiny, identical API for streaming a large collection element-by-element, in every language I work in.</strong> I called it <strong>flatwire</strong>, because the goal is a flat memory profile over the wire.</p>
+
+<h2>The one idea</h2>
+
+<p>The whole library is basically one sentence: <strong>stream a large collection one element at a time, so peak memory is bounded by the largest single element instead of the size of the whole collection.</strong></p>
+
+<p>On encode, each element is written straight to the output stream and then dropped — you never hold the full array. On decode, the reader finds element boundaries and hands you one element at a time, so the whole array is never resident at once.</p>
+
+<p>The surface is deliberately small — two functions do the real work:</p>
+
+<pre><code>import flatwire
+
+# stream a huge collection out; peak memory is one element, not the whole list
+with open("out.json", "wb") as fp:
+    flatwire.encode_array(rows, fp)
+
+# read it back lazily
+with open("out.json", "rb") as fp:
+    for row in flatwire.decode_array(fp):
+        handle(row)</code></pre>
+
+<p>That's it. The same pair exists in Node (<code>encodeArray</code>/<code>decodeArray</code>), .NET (<code>Flat.EncodeArray</code>/<code>DecodeArray</code>), Rust, Go, and Java, with names that fit each language's conventions.</p>
+
+<h2>The numbers, and the honest part</h2>
+
+<p>Here's what "memory flat" means, measured encoding arrays of records:</p>
+
+<pre><code>Payload                  stdlib encode      flatwire encode
+──────────────────────────────────────────────────────────
+~2.5 MB   (10k records)   5.1 MB peak        1.4 KB peak
+~12.7 MB  (50k records)  25.5 MB peak        1.4 KB peak</code></pre>
+
+<p>Encode memory is flat at ~1.4 KB whether the payload is a quarter-megabyte or thirteen megabytes. Decode holds a fixed ~200 KB working buffer regardless of size — about a <strong>99.5% reduction</strong> at 50k rows.</p>
+
+<p>Now the part I want to be straight about, because it's the part a good reviewer will poke at first: <strong>flatwire is not trying to beat your fastest serializer on raw throughput.</strong> If you compare against an optimized C extension like <code>orjson</code>, flatwire still trades some CPU for flat memory. But here's where I have to tell on myself: when I <em>first</em> shipped this, that trade was brutal in Python — streaming-and-discarding a 12 MB array was roughly <strong>30× slower</strong> than <code>json.loads</code>, because my Python decoder was a hand-written, character-by-character scanner running in the interpreter. Every other language wrapped a native/compiled parser and paid ~1–2×; Python alone was eating an order-of-magnitude tax.</p>
+
+<p>That bugged me enough that I went back and fixed it in <strong>1.1.0</strong>. The insight was embarrassingly simple: I didn't need to hand-scan bytes at all. Python's standard library already ships a C-accelerated JSON parser, and its <code>JSONDecoder.raw_decode</code> will parse <em>exactly one value</em> starting at a given offset and tell you where it stopped. So I rewrote the decode loop to lean on that — skip whitespace, <code>raw_decode</code> one element, advance, yield, repeat — instead of walking characters myself. Same streaming behavior, same chunk-boundary handling, same flat memory, but the hot loop is now C.</p>
+
+<p>On the same 12 MB array, streaming decode went from <strong>~2.7 s to ~0.17 s</strong> — from ~30× down to about <strong>2.2× of <code>json.loads</code></strong> — with <strong>no new dependency</strong>. Encode got an optional lane too: <code>pip install flatwire[fast]</code> routes per-element encoding through <code>orjson</code> when it's present (~1.5× a bulk <code>orjson.dumps</code>), while the default install stays zero-dependency.</p>
+
+<p>Here's the honest, updated picture — streaming and discarding a 12 MB array, per language, relative to that language's native materialize-then-iterate:</p>
+
+<pre><code>Language   Native decoder used           flatwire streaming decode
+────────────────────────────────────────────────────────────────
+Go         encoding/json                 ~0.9x   (faster — never builds the list)
+.NET       DeserializeAsyncEnumerable    ~1x
+Java       Jackson streaming             ~1.1x
+Rust       compiled serde_json scanner   ~1.8x
+Python     stdlib raw_decode (C)         ~2.2x   (was ~30x)
+Node       V8 JSON.parse per element     ~5.4x</code></pre>
+
+<p>And the memory side, which never changed because it was the point all along:</p>
+
+<pre><code>Approach (Python, 12.7 MB array)      Peak memory    Relative time
+──────────────────────────────────────────────────────────────────
+json     (materialize, then iterate)   36.5 MB        1x
+orjson   (materialize, then iterate)   170.5 MB       ~0.65x
+flatwire (stream, discard)             ~200 KB        ~2.2x</code></pre>
+
+<p>So the pitch still isn't "throw away orjson." It's: <strong>use orjson when the whole collection fits comfortably in memory and you want peak speed; use flatwire when the collection is large and memory is the constraint</strong> — and now you pay ~2× for that flat profile in Python, not 30×. Different tool, different job — but I'm a lot happier defending that 2× in a code review than I was defending 30×.</p>
+
+<p>The number that actually changed how I think about this, though, wasn't peak memory — it was <strong>time-to-first-row</strong>. A handler that materializes the whole response can't emit row 0 until it has built the <em>entire</em> payload, so its time-to-first-byte scales with size: ~490 ms at 10k rows, ~2.8 s at 50k. Streaming emits row 0 in about a millisecond, flat. That's the difference between a UI that feels instant and one that spins. And under concurrency it compounds: 32 concurrent decodes of a 20k-row payload used 266 MB materialized versus 4.1 MB streaming. Flat peak-per-request is exactly why p99 latency stops cliff-diving when traffic spikes.</p>
+
+<h2>Why do it six times? (This is the actually-interesting part.)</h2>
+
+<p>Here's the thing I didn't expect. Once you decide to wrap "the streaming primitive" in six languages, the wrapping is commodity — any senior engineer can do it in an afternoon per language. What's <em>not</em> commodity is making the six agree.</p>
+
+<p>flatwire also speaks three more wire formats behind the same <code>format=</code> selector: XML, binary MessagePack, and binary CBOR. And for the two binary formats I made a much stronger promise than "it round-trips" — I promised <strong>byte-identical output across all six languages.</strong> The exact same value encodes to the exact same bytes whether you run it in Go or Rust or Node.</p>
+
+<p>That promise is where all the actual engineering went, because the naive implementations do <em>not</em> agree. A few of the potholes:</p>
+
+<ul>
+  <li><strong>Integer encoding.</strong> MessagePack and CBOR both let you encode the number <code>42</code> several legal ways. To get byte-identity you have to pick a canonical rule — shortest encoding that fits, non-negative uses unsigned, negative uses signed — and enforce it everywhere. Miss it in one language and the bytes diverge.</li>
+  <li><strong>Map key order.</strong> JSON objects and hash maps iterate in whatever order the language feels like. If you want identical bytes you have to sort keys by their UTF-8 byte sequence — and "sort by UTF-8 bytes" is subtly not the same as Java's default <code>String</code> comparison (which is UTF-16 based and differs on characters outside the basic plane). That one cost me an afternoon.</li>
+  <li><strong>Floats.</strong> Always encode as 64-bit IEEE-754, no clever shortening, or the bytes wander.</li>
+  <li><strong>A JavaScript gotcha.</strong> <code>1e300</code> is an integer-valued <code>Number</code> in JS, but it is emphatically not a 64-bit int, and if you route it through the integer path it corrupts. The fix is checking <code>Number.isSafeInteger</code>, not <code>Number.isInteger</code>.</li>
+</ul>
+
+<p>The only way I trusted any of this was to stop hand-waving and <strong>prove it</strong>. So there's a shared corpus of JSON fixtures — Unicode edge cases, deep nesting, huge numbers, empty arrays, tricky escapes — and a conformance runner that pushes that corpus through all six languages on every push to CI, then diffs the encoded bytes. The result is a published matrix: <strong>10/10 of the byte-identical-tier cases are byte-identical across all six runtimes, for both MessagePack and CBOR.</strong> That test suite caught four real bugs I'd otherwise have shipped, including the <code>1e300</code> one and a .NET type-coercion issue in the runner itself.</p>
+
+<p>That's the part I'm proud of. It turns "six wrappers" into "one spec, six conforming implementations." A stream written by a Go service decodes to the same value — and, for the binary formats, from the same bytes — in a browser, a .NET worker, or a Python job. No schema registry, no IDL.</p>
+
+<blockquote>The bytes are the contract.</blockquote>
+
+<h2>The stuff that makes it real instead of a toy</h2>
+
+<p>A streaming primitive is a nice demo. What makes it usable in production is the boring surrounding work, and honestly this is where most "I built a library" projects stop and shouldn't:</p>
+
+<ul>
+  <li><strong>Partial-stream failure semantics.</strong> The unspoken problem with streaming a response: you've already sent <code>200 OK</code> and half the array when element 40,000 throws. A bare streamed array gives the client no way to tell "finished cleanly" from "the connection died" from "the producer errored after N rows." flatwire wraps the stream in a small envelope whose terminal status is written <em>last</em>, so the consumer can distinguish all three — clean completion, an in-band error with details, or truncation. It's plain JSON, so it interoperates across all six languages.</li>
+  <li><strong>Backpressure.</strong> Streaming without honoring the writer's backpressure just moves the memory from your heap into the socket buffer — you haven't actually fixed anything. The encoders wait on the drain signal so a slow consumer throttles the producer instead of ballooning memory.</li>
+  <li><strong>Framework adapters.</strong> The adoption moment isn't <code>encode_array(items, fp)</code>; it's <code>return StreamingResponse(...)</code> in one line in FastAPI, or <code>sendArray(res, rows)</code> in Express, and the endpoint just stops OOM-ing. Those one-liners exist for all six languages now.</li>
+  <li><strong>A CLI.</strong> <code>flatwire cat</code>, <code>flatwire convert</code>, <code>flatwire stats</code> — stream and convert files of any size in constant memory, because sometimes you just want to poke at a 5 GB file without loading it.</li>
+</ul>
+
+<h2>What I'd tell you if you were about to build this</h2>
+
+<p>Three things I actually took away:</p>
+
+<ol>
+  <li><strong>The technique is rarely the moat.</strong> Every ecosystem already had the streaming primitive. The differentiator turned out to be the cross-language <em>contract</em> and the conformance suite that proves it — not the wrapping. If I'd stopped at "it streams," it wouldn't have been worth publishing.</li>
+  <li><strong>Write the honest baseline into the README — then go fix the thing you're apologizing for.</strong> The fastest way to lose a reader's trust is to overclaim. My first README said plainly "we're ~30× slower in Python but use 99.5% less memory, here's when to pick which" — and being that honest is what made the <em>rest</em> of the claims believable. But writing the weakness down also made it impossible to ignore, and a release later I'd turned that 30× into ~2× by leaning on the stdlib's C parser instead of my own scanner. The honesty came first; the fix came because of it.</li>
+  <li><strong>Prove the scary invariant in CI or it isn't true.</strong> "Byte-identical across six languages" is a sentence anyone can write. It's only real because a machine re-checks it on every commit against a corpus designed to break it.</li>
+</ol>
+
+<p>flatwire is <strong>1.1.0</strong>, Apache-2.0, and published to PyPI, npm, crates.io, NuGet, Maven Central, and Go. There's a live benchmark dashboard and a browser playground where you can paste a JSON array and watch it encode to all four formats with a size comparison.</p>
+
+<p>If you've ever had a list endpoint quietly become a memory bomb, take a look — and if you find a case where the six languages <em>don't</em> produce identical bytes, please open an issue. That's exactly the bug I most want to hear about.</p>
+
+<hr>
+
+<h2>Links</h2>
+
+<ul>
+  <li><strong>Repo:</strong> <a href="https://github.com/flatwire-io/flatwire">github.com/flatwire-io/flatwire</a></li>
+  <li><strong>Live dashboard &amp; playground:</strong> <a href="https://flatwire-io.github.io/flatwire/">flatwire-io.github.io/flatwire</a></li>
+  <li><strong>1.1.0 release notes:</strong> <a href="https://github.com/flatwire-io/flatwire/releases/tag/v1.1.0">the v1.1.0 release</a></li>
+</ul>
+
+<p><strong>One library, six registries:</strong></p>
+
+<ul>
+  <li><strong>Python</strong> — <a href="https://pypi.org/project/flatwire/">PyPI · flatwire</a> — <code>pip install flatwire</code> (or <code>flatwire[fast]</code>)</li>
+  <li><strong>Node</strong> — <a href="https://www.npmjs.com/package/flatwire">npm · flatwire</a> — <code>npm install flatwire</code></li>
+  <li><strong>Rust</strong> — <a href="https://crates.io/crates/flatwire">crates.io · flatwire</a> — <code>cargo add flatwire</code></li>
+  <li><strong>.NET</strong> — <a href="https://www.nuget.org/packages/FlatWire">NuGet · FlatWire</a> — <code>dotnet add package FlatWire</code></li>
+  <li><strong>Java</strong> — <a href="https://central.sonatype.com/artifact/io.github.flatwire-io/flatwire">Maven Central · io.github.flatwire-io:flatwire</a></li>
+  <li><strong>Go</strong> — <a href="https://pkg.go.dev/github.com/flatwire-io/flatwire/packages/go">pkg.go.dev</a> — <code>go get github.com/flatwire-io/flatwire/packages/go</code></li>
+</ul>
+
+<hr>
+
+<p class="byline"><em>Written by <strong>Parag Sawant</strong> — Senior Software Engineer. I build backend platforms, distributed systems, and developer tooling. More of my open-source work lives at <a href="https://github.com/parag-labs">github.com/parag-labs</a>, and you can reach me on <a href="https://www.linkedin.com/in/paragsawant/">LinkedIn</a> or <a href="https://github.com/paragpsawant">GitHub</a>.</em></p>
+
+</article>
+</body>
+</html>
