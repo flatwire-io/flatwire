@@ -52,9 +52,9 @@
   },
   "decodeTime": {
     "unit": "seconds",
-    "note": "Median wall-clock time to decode-and-aggregate 50k records. flatwire trades CPU time for flat memory; the cost is small in native runtimes, large in pure-Python.",
+    "note": "Median wall-clock time to decode-and-aggregate 50k records. flatwire trades CPU time for flat memory; the cost is small in native runtimes and ~2x in Python via the C-accelerated raw_decode path.",
     "rows": [
-      { "lang": "Python", "materialized": 0.0891, "streaming": 2.7403 },
+      { "lang": "Python", "materialized": 0.0788, "streaming": 0.1744 },
       { "lang": "Rust",   "materialized": 0.0655, "streaming": 0.1191 },
       { "lang": ".NET",   "materialized": 0.0715, "streaming": 0.0305 },
       { "lang": "Go",     "materialized": 0.1043, "streaming": 0.2055 },

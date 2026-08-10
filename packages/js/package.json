@@ -1,6 +1,6 @@
 {
   "name": "flatwire",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Streaming JSON, XML and MessagePack serialization that keeps memory flat and time linear - stream large collections element-by-element.",
   "main": "index.js",
   "types": "index.d.ts",

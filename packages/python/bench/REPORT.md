@@ -17,11 +17,13 @@ large payload.
 
 ## Headline
 
-flatwire is **not** a faster serializer than `orjson` or `msgspec` — those are
-heavily optimized C extensions and they win on raw throughput. flatwire changes
-one specific thing: **peak memory when you process a large array without needing
-all of it resident at once.** It trades CPU time for flat memory. Both axes are
-reported here.
+flatwire's decode is built on the standard library's C-accelerated JSON parser
+(`JSONDecoder.raw_decode`), so it stays close to native speed while still
+streaming one element at a time. It won't beat `orjson`/`msgspec` on raw
+throughput — those are optimized C extensions — but it is only a small multiple
+of the stdlib, not an order of magnitude. What flatwire changes is **peak memory
+when you process a large array without needing all of it resident at once.** Both
+axes are reported here.
 
 ## 1. Decode-to-list (you need all N objects in memory anyway)
 
@@ -58,30 +60,34 @@ This is what flatwire is for.
 
 | elements | json | orjson | flatwire |
 |---:|---:|---:|---:|
-| 1,000 | 0.0013 | 0.0007 | 0.0513 |
-| 10,000 | 0.0151 | 0.0104 | 0.5259 |
-| 50,000 | 0.0891 | 0.0581 | 2.7403 |
+| 1,000 | 0.0011 | 0.0007 | 0.0032 |
+| 10,000 | 0.0146 | 0.0094 | 0.0355 |
+| 50,000 | 0.0788 | 0.0530 | 0.1744 |
 
 Finding: flatwire's peak memory is **flat at ~194 KB regardless of payload
 size**, a **99.5%** reduction vs `json` and **99.9%** vs `orjson` at 50k records.
-The cost is time: the pure-Python scanner is roughly **30× slower** than
-`json.loads`. That is the trade — flatwire lets you process an array far larger
-than RAM would otherwise allow, at a CPU cost.
+Because the decode loop is driven by the standard library's C-accelerated
+`raw_decode`, the time cost is small — roughly **2.2× `json.loads`** at 50k
+records (not the order-of-magnitude penalty a pure-Python scanner would pay). So
+flatwire lets you process an array far larger than RAM would otherwise allow, at
+a modest CPU cost.
 
 ## 3. Encode
 
-**Time** (seconds):
+**Time** (seconds) — `flatwire.encode_array` shown with the optional `orjson`
+fast backend installed (`pip install flatwire[fast]`):
 
-| elements | json | orjson | msgspec | flatwire.encode | flatwire.encode_array |
-|---:|---:|---:|---:|---:|---:|
-| 1,000 | 0.0016 | 0.0001 | 0.0002 | 0.0023 | 0.0034 |
-| 10,000 | 0.0208 | 0.0038 | 0.0046 | 0.0240 | 0.0379 |
-| 50,000 | 0.1116 | 0.0220 | 0.0331 | 0.1323 | 0.1933 |
+| elements | json | orjson | flatwire.encode_array |
+|---:|---:|---:|---:|
+| 1,000 | 0.0014 | 0.0001 | 0.0005 |
+| 10,000 | 0.0178 | 0.0038 | 0.0055 |
+| 50,000 | 0.0930 | 0.0190 | 0.0292 |
 
 `encode_array` streams each element straight to the sink, so its peak memory is
 bounded by one element (measured ~1.4 KB flat in [`benchmark.py`](benchmark.py))
-while `json.dumps(...).encode()` holds the whole payload. On speed, orjson/msgspec
-lead; flatwire's encode is stdlib-class.
+while `json.dumps(...).encode()` holds the whole payload. With the `orjson` fast
+backend it runs at **~1.5× a bulk `orjson.dumps`** while keeping memory flat;
+without it, encode is stdlib-class and still flat-memory.
 
 ## Recommendation (Python)
 

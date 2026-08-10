@@ -25,6 +25,24 @@ with open("out.json", "rb") as fp:
 
 Wire format is plain JSON, so nothing downstream changes.
 
+## Speed
+
+Streaming decode is built on the standard library's C-accelerated JSON parser
+(`raw_decode`), so it stays close to native speed while still yielding one element
+at a time — roughly **2× `json.loads`** on large arrays, not the order-of-magnitude
+penalty a pure-Python scanner would pay, with **~99% less peak memory**. Encode can
+match `orjson` too:
+
+```bash
+pip install flatwire[fast]   # pulls in orjson; used automatically when present
+```
+
+With the `fast` extra installed, per-element encoding routes through `orjson`
+(~1.5× a bulk `orjson.dumps`) while keeping memory flat. It's entirely optional —
+the default install has zero dependencies. See
+[bench/REPORT.md](https://github.com/flatwire-io/flatwire/blob/main/packages/python/bench/REPORT.md)
+for the full measured comparison.
+
 ## Checked streams (partial-stream failure semantics)
 
 When you stream a large array over HTTP you have already sent `200 OK` before an

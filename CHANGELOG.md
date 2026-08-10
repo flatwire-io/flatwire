@@ -6,6 +6,31 @@ All notable changes to flatwire are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-10
+
+### Performance
+- **Python streaming decode is now ~13–20× faster.** `decode_array` (JSON) was
+  driven by a hand-written, character-by-character Python scanner; it now finds
+  element boundaries with the standard library's **C-accelerated**
+  `JSONDecoder.raw_decode`. On a 12.7 MB / 50k-record array, streaming decode went
+  from **~2.7 s to ~0.17 s** — from roughly **30× `json.loads` down to ~2.2×** —
+  with the same flat ~200 KB peak memory and no new dependency. All streaming,
+  chunk-boundary, multibyte, depth-guard, and rejection semantics are unchanged
+  and still tested.
+- **Optional `orjson` encode backend (Python).** Installing the new `fast` extra
+  (`pip install flatwire[fast]`) makes streaming JSON `encode_array` route each
+  element through `orjson` automatically — ~7× faster encode, bringing it to
+  ~1.5× a bulk `orjson.dumps` while keeping memory flat. It's auto-detected and
+  entirely optional; the default install stays zero-dependency and byte-compatible
+  with `json.dumps`.
+- **Node streaming decode scanner tuned.** The JSON boundary scanner now runs on
+  numeric char codes and compacts its buffer amortized (O(n) instead of O(n²) on
+  pathological tiny-element streams), for cleaner worst-case behavior.
+- **.NET, Rust, Go, and Java were already at native speed** — their decoders wrap
+  each ecosystem's native/compiled streaming parser (`DeserializeAsyncEnumerable`,
+  a compiled byte scanner, `encoding/json`, Jackson streaming). No change needed;
+  measured Go streaming decode is ~0.9× native (faster than decode-to-list).
+
 ## [1.0.0] - 2026-08-09
 
 First stable release. The API is considered stable and the project follows

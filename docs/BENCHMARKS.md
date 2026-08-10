@@ -70,8 +70,10 @@ the scanner is:
 
 - **Rust / .NET / Java / Go:** streaming decode is ~1–2× the materialized time,
   and streaming *encode* is often as fast or faster.
-- **Python:** the pure-Python scanner is ~30× slower than `json.loads` — a real
-  cost, worth it only when memory is the binding constraint.
+- **Python:** streaming decode runs on the standard library's C-accelerated
+  parser (`raw_decode`), so it's only **~2× `json.loads`** while cutting peak
+  memory ~99%. An optional `orjson` backend (`pip install flatwire[fast]`) brings
+  streaming *encode* to ~1.5× a bulk `orjson.dumps`.
 
 ## When to use it
 
