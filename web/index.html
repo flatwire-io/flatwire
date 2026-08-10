@@ -217,7 +217,7 @@
             keys={["materialized", "streaming"]}
             colors={[COLORS.materialized, COLORS.stream2]}
             fmt={humanSec}
-            foot="flatwire trades CPU time for flat memory. The cost is small (or even negative) in native runtimes; large in pure-Python." />
+            foot="flatwire trades CPU time for flat memory. The cost is small (or even negative) in native runtimes; in Python it's ~2x json.loads via the C-accelerated raw_decode path." />
 
           <ComparisonCard
             title="Streaming XML — DOM vs flatwire (Python)"

@@ -93,11 +93,20 @@ function decodeArray(readable, opts = {}) {
 }
 
 // Lazily parse a top-level JSON array from a readable, yielding one element at a
-// time. Mirrors the Python scanner: a persistent cursor tracks bracket/brace
-// depth and string state to find the depth-1 commas that separate elements,
-// without ever rescanning bytes across chunk boundaries. `maxDepth` bounds how
-// deeply a single element may nest before the input is rejected (0 disables it).
+// time. A persistent cursor tracks bracket/brace depth and string state to find
+// the depth-1 commas that separate elements, without ever rescanning bytes across
+// chunk boundaries. The scan runs on numeric char codes (charCodeAt) rather than
+// single-char strings, which keeps the hot loop in V8's fast path - elements are
+// still handed to the native JSON.parse individually, so memory stays bounded by
+// the largest single element. `maxDepth` bounds how deeply a single element may
+// nest before the input is rejected (0 disables it).
 async function* jsonDecodeArray(readable, { maxDepth = 200 } = {}) {
+  // Char codes for the structural bytes the scanner cares about.
+  const SPACE = 32, TAB = 9, LF = 10, CR = 13;
+  const LBRACKET = 91, RBRACKET = 93, LBRACE = 123, RBRACE = 125;
+  const QUOTE = 34, BACKSLASH = 92, COMMA = 44;
+  const COMPACT_AT = 65536; // drop the consumed prefix once it grows past this
+
   let buf = '';
   let pos = 0;           // persistent scan cursor - never rescans prior bytes
   let elemStart = 0;
@@ -112,11 +121,13 @@ async function* jsonDecodeArray(readable, { maxDepth = 200 } = {}) {
 
   for await (const chunk of readable) {
     buf += Buffer.isBuffer(chunk) ? decoder.write(chunk) : chunk;
+    // Read buf.length fresh each iteration - the buffer is compacted below, so a
+    // cached length would go stale.
     while (pos < buf.length) {
-      const ch = buf[pos];
+      const cc = buf.charCodeAt(pos);
       if (!started) {
-        if (ch === ' ' || ch === '\n' || ch === '\t' || ch === '\r') { pos += 1; elemStart = pos; continue; }
-        if (ch !== '[') throw new Error('decodeArray expects a top-level JSON array');
+        if (cc === SPACE || cc === LF || cc === TAB || cc === CR) { pos += 1; elemStart = pos; continue; }
+        if (cc !== LBRACKET) throw new Error('decodeArray expects a top-level JSON array');
         started = true;
         pos += 1;
         elemStart = pos;
@@ -124,33 +135,38 @@ async function* jsonDecodeArray(readable, { maxDepth = 200 } = {}) {
       }
       if (inString) {
         if (escape) escape = false;
-        else if (ch === '\\') escape = true;
-        else if (ch === '"') inString = false;
+        else if (cc === BACKSLASH) escape = true;
+        else if (cc === QUOTE) inString = false;
         pos += 1;
         continue;
       }
-      if (ch === '"') { inString = true; pos += 1; }
-      else if (ch === '{' || ch === '[') {
+      if (cc === QUOTE) { inString = true; pos += 1; }
+      else if (cc === LBRACE || cc === LBRACKET) {
         depth += 1;
         if (maxDepth && depth > maxDepth) throw new Error(`decodeArray: nesting depth exceeded ${maxDepth}`);
         pos += 1;
       }
-      else if (ch === '}' || ch === ']') {
-        if (ch === ']' && depth === 0) {
+      else if (cc === RBRACE || cc === RBRACKET) {
+        if (cc === RBRACKET && depth === 0) {
           const seg = buf.slice(elemStart, pos).trim();
           if (seg) yield JSON.parse(seg);
           return;
         }
         depth -= 1;
         pos += 1;
-      } else if (ch === ',' && depth === 0) {
+      } else if (cc === COMMA && depth === 0) {
         const seg = buf.slice(elemStart, pos).trim();
         if (seg) yield JSON.parse(seg);
         pos += 1;
-        // Drop consumed prefix so the buffer never grows with the array.
-        buf = buf.slice(pos);
-        pos = 0;
-        elemStart = 0;
+        elemStart = pos;
+        // Compact only occasionally so we don't reallocate the whole remaining
+        // buffer on every element (that would be O(n^2)); memory still stays
+        // bounded because the consumed prefix never grows past COMPACT_AT.
+        if (elemStart >= COMPACT_AT) {
+          buf = buf.slice(elemStart);
+          pos -= elemStart;
+          elemStart = 0;
+        }
       } else {
         pos += 1;
       }

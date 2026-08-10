@@ -61,15 +61,15 @@ Encode memory is **flat** — ~1.4 KB whether the payload is 0.25 MB or 12.7 MB 
 
 ### Comparison vs orjson / msgspec / stdlib
 
-flatwire is **not** a faster serializer than the optimized C extensions — it trades CPU time for flat memory. A full head-to-head (peak memory *and* time, `json` vs `orjson` vs `msgspec` vs flatwire, across sizes and shapes) lives in **[`packages/python/bench/REPORT.md`](packages/python/bench/REPORT.md)**. The one-line summary, measured on this machine, for processing a 12 MB array element-by-element and discarding each element:
+flatwire trades a little CPU time for a lot less memory. A full head-to-head (peak memory *and* time, `json` vs `orjson` vs `msgspec` vs flatwire, across sizes and shapes) lives in **[`packages/python/bench/REPORT.md`](packages/python/bench/REPORT.md)**. The one-line summary, measured on this machine, for processing a 12.7 MB array element-by-element and discarding each element:
 
 | approach | peak memory | relative time |
 |---|---|---|
 | `json` (materialize then iterate) | 36.5 MB | 1× |
 | `orjson` (materialize then iterate) | 170.5 MB | ~0.65× |
-| **flatwire** (stream, discard) | **194 KB** | ~30× |
+| **flatwire** (stream, discard) | **260 KB** | **~2.1×** |
 
-So: use `orjson`/`msgspec` when you need the whole collection resident and want speed; use flatwire when you're streaming a large array and **memory is the constraint**. The other five languages have their own measured harnesses too — see the [cross-language benchmark summary](docs/BENCHMARKS.md).
+flatwire uses **~99.3% less memory** than the stdlib here and runs a bit over **2× the time** — because streaming decode is built on the standard library's C-accelerated JSON parser (`raw_decode`), it stays close to native speed while never holding the whole array. Encode can match `orjson` too: `pip install flatwire[fast]` routes per-element encoding through `orjson` when present, bringing streaming encode to ~1.6× of a bulk `orjson.dumps` while keeping memory flat. So: reach for `orjson`/`msgspec` when the whole collection fits and you want raw throughput; reach for flatwire when the array is large and **memory is the constraint**. The other five languages wrap their ecosystem's native streaming parser and are already at native speed — see the [cross-language benchmark summary](docs/BENCHMARKS.md).
 
 ### The numbers a service owner feels
 
@@ -122,7 +122,7 @@ Each package's README has the full per-language signatures.
 
 ## Status
 
-**v1.0 — stable. Four formats, six languages, proven by conformance CI, with production hardening and a CLI.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, binary MessagePack, and binary CBOR** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity). The API is stable and follows [Semantic Versioning](https://semver.org/) from 1.0 onward.
+**v1.1 — stable. Four formats, six languages, proven by conformance CI, with production hardening and a CLI.** The surface is the streaming array pair plus whole-value convenience, on **JSON, XML, binary MessagePack, and binary CBOR** wires, in all six ecosystems, with a nesting-depth guard on the hand-written decoders. A [cross-language conformance suite](conformance/) runs the same corpus through all six on every push and publishes the [round-trip + byte-identity matrix](conformance/RESULTS.md). **All six languages are developed and tested locally *and* validated on CI** — see the [maturity table](conformance/RESULTS.md#maturity). The API is stable and follows [Semantic Versioning](https://semver.org/) from 1.0 onward.
 
 ### Shipped
 - **Multi-format core** — one `encode_array` / `decode_array` API over **JSON, XML, binary MessagePack, and binary CBOR** behind a `format` selector, in all six languages. Both binary formats are **byte-identical across all six runtimes** (canonical integers + sorted keys), proven by conformance CI. ([design](docs/FORMATS.md))

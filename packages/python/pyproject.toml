@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flatwire"
-version = "1.0.0"
+version = "1.1.0"
 description = "Streaming JSON serialization that keeps memory flat and time linear - stream large collections element-by-element."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -28,6 +28,11 @@ flatwire = "flatwire.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+# `pip install flatwire[fast]` adds the orjson C extension; when present,
+# streaming JSON encode uses it automatically (~7x faster). Purely optional -
+# the default install has zero dependencies and streaming decode is already fast
+# on the standard library alone.
+fast = ["orjson>=3"]
 
 [tool.setuptools]
 packages = ["flatwire"]

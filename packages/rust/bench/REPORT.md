@@ -46,8 +46,9 @@ Payload shape: `records` — `{"id", "name", "payload": 200-char string, "ok"}`.
   array is 245 KB or 12 MB, versus 42.8 MB to materialize the whole
   `Vec<Value>`. At 50k that is a **~99.9995%** reduction.
 - **The time cost is small in Rust.** Streaming decode is only ~1.8× slower than
-  materializing (0.119 s vs 0.066 s) — the scanner compiles to native code, so
-  the memory-for-time trade is far cheaper here than in Python (~30×). Streaming
+  materializing (0.119 s vs 0.066 s) — the scanner compiles to native code. Python
+  reaches comparable relative overhead (~2×) by driving its loop with the standard
+  library's C-accelerated `raw_decode`. Streaming
   encode is actually *faster*.
 
 ## Recommendation (Rust)
