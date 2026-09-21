@@ -24,6 +24,10 @@
 
 ---
 
+<p align="center"><img src="docs/diagrams/architecture.png" alt="flatwire architecture" width="920"></p>
+
+*Architecture at a glance — one streaming API, four wire formats, and the six-language byte-identity guarantee proven in CI. Diagram source: [`docs/diagrams/architecture.svg`](docs/diagrams/architecture.svg).*
+
 ## The problem
 
 Web apps serialize and deserialize large object graphs on hot paths — API responses, cache reads, service-to-service calls. Used the idiomatic way, the standard libraries in every ecosystem hold **several multiples of the payload size** in memory during a single operation: the whole graph becomes one giant string or byte array before a single byte reaches the socket. Under concurrency that compounds — N requests each holding a full copy — and you get large-heap pressure, GC pauses, and OOMs, with latency that degrades worse than linearly past a size threshold.
